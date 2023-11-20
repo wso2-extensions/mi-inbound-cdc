@@ -18,6 +18,6 @@ To get started with the inbound endpoint, go to [Configuring CDC Inbound Endpoin
 
 Follow the steps given below to build the Kafka Inbound Endpoint from the source code.
 
-1. Get a clone or download the source from [Github](https://github.com/wso2-extensions/esb-inbound-cc).
+1. Get a clone or download the source from [Github](https://github.com/wso2-extensions/esb-inbound-cdc).
 2. Run the following Maven command from the `esb-inbound-cdc` directory: `mvn clean install`.
 3. The JAR file for the CDC Inbound Endpoint is created in the `esb-inbound-cdc/target` directory.

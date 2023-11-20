@@ -51,6 +51,8 @@ import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.DEBEZIUM_TOPIC_PRE
 import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.DEBEZIUM_VALUE_CONVERTER;
 import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.DEBEZIUM_VALUE_CONVERTER_SCHEMAS_ENABLE;
 import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.DEBEZIUM_SKIPPED_OPERATIONS;
+import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.FILE_SCHEMA_HISTORY_STORAGE_CLASS;
+import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.FILE_OFFSET_STORAGE_CLASS;
 import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.TRUE;
 
 /**
@@ -61,8 +63,6 @@ import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.TRUE;
 public class CDCPollingConsumer extends GenericPollingConsumer {
 
     private static final Log logger = LogFactory.getLog(CDCPollingConsumer.class);
-    private static final String FILE_OFFSET_STORAGE_CLASS = "org.apache.kafka.connect.storage.FileOffsetBackingStore";
-    private static final String FILE_SCHEMA_HISTORY_STORAGE_CLASS = "io.debezium.storage.file.history.FileSchemaHistory";
     private Properties cdcProperties;
     private String inboundEndpointName;
     private SynapseEnvironment synapseEnvironment;
@@ -136,15 +136,22 @@ public class CDCPollingConsumer extends GenericPollingConsumer {
     private void listenDataChanges () {
         executorService = Executors.newSingleThreadExecutor();
 
-        if (engine == null || executorService.isShutdown()) {
-            engine = DebeziumEngine.create(Json.class)
-                    .using(this.cdcProperties)
-                    .notifying(record -> {
-                        injectHandler.invoke(record, this.inboundEndpointName);
-                    }).build();
+        try {
+            if (engine == null || executorService.isShutdown()) {
+                engine = DebeziumEngine.create(Json.class)
+                        .using(this.cdcProperties)
+                        .notifying(record -> {
+                            injectHandler.invoke(record, this.inboundEndpointName);
+                        }).build();
 
-            executorService.execute(engine);
+                executorService.execute(engine);
+            }
+        } finally {
+            if (executorService != null) {
+                executorService.shutdown();
+            }
         }
+
     }
 
     protected Properties getInboundProperties() {

@@ -52,6 +52,8 @@ import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.DEBEZIUM_TOPIC_PRE
 import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.DEBEZIUM_VALUE_CONVERTER;
 import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.DEBEZIUM_VALUE_CONVERTER_SCHEMAS_ENABLE;
 import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.DEBEZIUM_SKIPPED_OPERATIONS;
+import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.FILE_SCHEMA_HISTORY_STORAGE_CLASS;
+import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.FILE_OFFSET_STORAGE_CLASS;
 import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.TRUE;
 
 public class CDCProcessor extends GenericProcessor implements TaskStartupObserver, InboundTaskProcessor {
@@ -62,8 +64,6 @@ public class CDCProcessor extends GenericProcessor implements TaskStartupObserve
     private String onErrorSeq;
     private boolean sequential;
     private static final String ENDPOINT_POSTFIX = "CDC" + COMMON_ENDPOINT_POSTFIX;
-    private static final String FILE_OFFSET_STORAGE_CLASS = "org.apache.kafka.connect.storage.FileOffsetBackingStore";
-    private static final String FILE_SCHEMA_HISTORY_STORAGE_CLASS = "io.debezium.storage.file.history.FileSchemaHistory";
     private static final Log logger = LogFactory.getLog(CDCProcessor.class);
 
     private enum operations {create, update, delete, truncate};
@@ -102,7 +102,7 @@ public class CDCProcessor extends GenericProcessor implements TaskStartupObserve
             if (this.cdcProperties.getProperty(DEBEZIUM_OFFSET_STORAGE).equals(FILE_OFFSET_STORAGE_CLASS)) {
                 String filePath;
                 if (this.cdcProperties.getProperty(DEBEZIUM_OFFSET_STORAGE_FILE_FILENAME) == null) {
-                    filePath = "cdc/offsetStorage/" + this.name + "_.dat";
+                    filePath = "cdc" + File.separator + "offsetStorage" + File.separator + this.name + "_.dat";
                 } else {
                     filePath = this.cdcProperties.getProperty(DEBEZIUM_OFFSET_STORAGE_FILE_FILENAME);
                 }
@@ -145,7 +145,7 @@ public class CDCProcessor extends GenericProcessor implements TaskStartupObserve
             if (this.cdcProperties.getProperty(DEBEZIUM_SCHEMA_HISTORY_INTERNAL).equals(FILE_SCHEMA_HISTORY_STORAGE_CLASS)) {
                 String filePath;
                 if (this.cdcProperties.getProperty(DEBEZIUM_SCHEMA_HISTORY_INTERNAL_FILE_FILENAME) == null) {
-                    filePath = "cdc/schemaHistory/" + this.name + "_.dat";
+                    filePath = "cdc" + File.separator + "schemaHistory" + File.separator + this.name + "_.dat";
                 } else {
                     filePath = this.cdcProperties.getProperty(DEBEZIUM_SCHEMA_HISTORY_INTERNAL_FILE_FILENAME);
                 }

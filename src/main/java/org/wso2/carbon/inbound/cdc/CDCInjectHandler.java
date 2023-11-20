@@ -69,6 +69,9 @@ public class CDCInjectHandler {
         if (eventRecord == null || eventRecord.value() == null) {
             logger.debug("CDC Source Handler received empty event record");
         } else {
+            if (StringUtils.isBlank(injectingSeq)) {
+                handleError("Injecting sequence name not specified");
+            }
             org.apache.synapse.MessageContext msgCtx = createMessageContext();
             msgCtx.setProperty(SynapseConstants.INBOUND_ENDPOINT_NAME, inboundEndpointName);
             msgCtx.setProperty(SynapseConstants.ARTIFACT_NAME, SynapseConstants.FAIL_SAFE_MODE_INBOUND_ENDPOINT + inboundEndpointName);
@@ -94,19 +97,18 @@ public class CDCInjectHandler {
                         cdcEventOutput.getOutputJsonPayload().toString(), true, true);
 
             } catch (AxisFault ex) {
-                handleError("Error while creating the OMElement");
+                logger.error("Error while creating the OMElement");
+                handleError(ex);
             }
 
             // Inject the message to the sequence.
             try {
                 msgCtx.setEnvelope(TransportUtils.createSOAPEnvelope(documentElement));
             } catch (AxisFault e) {
-                handleError("Error while creating the SOAP Envelop");
+                logger.error("Error while creating the SOAP Envelop");
+                handleError(e);
             }
 
-            if (StringUtils.isBlank(injectingSeq)) {
-                handleError("Injecting sequence name not specified");
-            }
             SequenceMediator seq = (SequenceMediator) synapseEnvironment.getSynapseConfiguration()
                     .getSequence(injectingSeq);
             if (seq != null) {
@@ -120,7 +122,7 @@ public class CDCInjectHandler {
                 seq.setErrorHandler(onErrorSeq);
 
                 if (!synapseEnvironment.injectInbound(msgCtx, seq, sequential)) {
-                    handleError("Failed to inject the sequence");
+                    handleError("Failed to inject the message to the sequence : " + injectingSeq);
                 }
             } else {
                 handleError("Sequence:" + injectingSeq + " not found");
@@ -133,6 +135,11 @@ public class CDCInjectHandler {
        logger.error(msg);
        throw new RuntimeException(msg);
    }
+
+    private void handleError(Exception e) {
+        logger.error(e);
+        throw new RuntimeException(e);
+    }
 
     /**
      * Create the initial message context for the file

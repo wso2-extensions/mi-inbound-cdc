@@ -25,6 +25,8 @@ class InboundCDCConstants {
     public static final String DEBEZIUM_OFFSET_STORAGE = "offset.storage";
     public static final String DEBEZIUM_OFFSET_STORAGE_FILE_FILENAME = "offset.storage.file.filename";
     public static final String DEBEZIUM_OFFSET_FLUSH_INTERVAL_MS = "offset.flush.interval.ms";
+    public static final String FILE_OFFSET_STORAGE_CLASS = "org.apache.kafka.connect.storage.FileOffsetBackingStore";
+    public static final String FILE_SCHEMA_HISTORY_STORAGE_CLASS = "io.debezium.storage.file.history.FileSchemaHistory";
     public static final String DEBEZIUM_DATABASE_PASSWORD = "database.password";
     public static final String DEBEZIUM_DATABASE_ALLOW_PUBLIC_KEY_RETRIEVAL = "database.allowPublicKeyRetrieval";
     public static final String DEBEZIUM_TOPIC_PREFIX = "topic.prefix";
