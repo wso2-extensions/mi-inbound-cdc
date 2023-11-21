@@ -2,7 +2,9 @@
 
 The CDC inbound protocol is used to perform Change Data Capture in MI. The changes happening to any external database can be listened to using the CDC inbound endpoint. The CDC protocol uses Debezium to connect with the databases and capture the events. The protocol itself outputs the event via a sequence through the Inbound Endpoint. Currently CDC Inbound Endpoint supports MySQL, SQL Server, Postgres and Oracle databases. You need to place the client JARs required for your CDC inside the Micro Integrator, to use this inbound endpoint.
 
-## Syntax
+## Sample configuration
+
+Given below is a sample CDC Inbound Endpoint configuration that can be used capture events from a MySQL database:
 
 ```
 <inboundEndpoint xmlns="http://ws.apache.org/ns/synapse"
@@ -45,7 +47,7 @@ All the params can be specified in the synapse config files for the CDC Inbound 
 <parameter name="param_name">param_value</parameter>
 ```
 
-## Required Properties [for the inbound endpoint]
+### Required Properties [for the inbound endpoint]
 
 The following properties are required when creating a CDC inbound endpoint.
 
@@ -79,7 +81,7 @@ The following properties are required when creating a CDC inbound endpoint.
 
 
 
-## Required Properties [for Debezium]
+### Required Properties [for Debezium]
 
 The following properties are required when creating a CDC inbound endpoint.
 
@@ -135,7 +137,7 @@ Default value is <code>KafkaSchemaHistory</code>
    </td>
    <td>This value is required only if   <strong>io.debezium.storage.file.history.FileSchemaHistory</strong> was provided for the schema.history.internal value. you need to specify the path to a file where the database schema history is stored.
 <p>
-By default, the file will be stored at &lt;Product home>/cdc/ schemaHistory directory
+By default, the file will be stored at `&lt;Product home>/cdc/schemaHistory` directory
    </td>
   </tr>
   <tr>
@@ -165,7 +167,7 @@ Required when <code>schema.history.internal</code> is set to the <code>&lt;…�
    </td>
    <td>Path to file where offsets are to be stored. Required when offset.storage is set to the &lt;…​>.FileOffsetBackingStore.
 <p>
-By default, the file will be stored at &lt;Product home>/cdc/ offsetStorage directory
+By default, the file will be stored at `&lt;Product home>/cdc/offsetStorage` directory
    </td>
   </tr>
   <tr>
@@ -282,7 +284,7 @@ By default, truncate operations are skipped.
 
 
 
-## Optional Properties
+### Optional Properties
 
 Other than the above required properties, you can add properties defined by Debezium, based on the Database type you are listening to.
 
@@ -305,13 +307,16 @@ Please note the following points :
 * It is mandatory to keep the server.id property unique across CDC Inbound endpoints. This is applicable to the clustering scenarios as well. (Even if all artifacts are expected to be identical in MI nodes in a cluster, still the server.id property for each CDC inbound endpoint must be unique inside the cluster.)
 * To enable database storage options for schema history and offset storage, see For RedisOffsetBackingStore  :[https://debezium.io/documentation/reference/stable/operations/debezium-server.html#debezium-source-configuration-properties](https://debezium.io/documentation/reference/stable/operations/debezium-server.html#debezium-source-configuration-properties)
 
+## How to use
 
-## Setting up the databases
+Download the inbound endpoint `org.apache.synapse.cdc.poll-*.jar` JAR file and add it in the `&lt;Product Home>/dropins` directory.
+
+### Setting up the databases
 
 Apart from the above steps, you need to do the additional configurations in the database level,  to facilitate CDC. 
 
 
-### 1. MySQL
+#### 1. MySQL
 1. Create a user. Check [https://debezium.io/documentation/reference/stable/connectors/mysql.html#mysql-creating-user](https://debezium.io/documentation/reference/stable/connectors/mysql.html#mysql-creating-user)
 2. Create the database to listen to, capture changes or consider the existing database that you need to listen to.
 
@@ -319,8 +324,8 @@ Apart from the above steps, you need to do the additional configurations in the 
 
 3. Further, let's assume that you need to listen to the data changes corresponding to insert and delete operations in the products table.
 4. Download the JDBC driver from the MySQL website.
-5. Unzip the archive and Copy the mysql-connector-java-5.1.45-bin.jar JAR and place it in the &lt;Product Home>/wso2/lib directory.
-6. Download the cdc-orbit jar from [here](https://maven.wso2.org/nexus/content/repositories/public/org/wso2/orbit/debezium/debezium/) and place in &lt;Product Home>/dropins.
+5. Unzip the archive and Copy the `mysql-connector-java-*-bin.jar` JAR and place it in the `&lt;Product Home>/wso2/lib` directory.
+6. Download the latest Debezium orbit jar from [nexus](https://maven.wso2.org/nexus/content/repositories/public/org/wso2/orbit/debezium/debezium/) and place in `&lt;Product Home>/dropins`.
 
 7. Enable binlog
 
@@ -333,7 +338,7 @@ Apart from the above steps, you need to do the additional configurations in the 
         [https://debezium.io/documentation/reference/stable/connectors/mysql.html#enable-query-log-events](https://debezium.io/documentation/reference/stable/connectors/mysql.html#enable-query-log-events)
 
 11. Validating binlog row value operations : [https://debezium.io/documentation/reference/stable/connectors/mysql.html#validate-binlog-row-value-options](https://debezium.io/documentation/reference/stable/connectors/mysql.html#validate-binlog-row-value-options)
-12. Create the synapse config file &lt;inbound_endpoint_name>.xml  to the inbound endpoint as follows : 
+12. Create the synapse config file `<inbound_endpoint_name>.xml`  to the inbound endpoint as follows : 
 
     1. Update the host, user name, password for the database.
     2. You can choose a preferred schema history and offset storage option and provide the file locations or kafka topics based on the chosen storage mechanism.
@@ -365,31 +370,31 @@ Apart from the above steps, you need to do the additional configurations in the 
 
 ```
 
-13. Place the  &lt;inbound_endpoint_name>.xml file inside &lt;product home>/repository/deployment/server/synapse-configs/default/inbound-endpoints.
-14. Place the following sequence file inside &lt;product home>/repository/deployment/server/synapse-configs/default/sequences.
+13. Place the `<inbound_endpoint_name>.xml` file inside `<product home>/repository/deployment/server/synapse-configs/default/inbound-endpoints`.
+14. Place the following sequence file inside `<product home>/repository/deployment/server/synapse-configs/default/sequences`.
 15. Start the Micro Integrator.
 
-### 2. Postgres
+#### 2. Postgres
 
  1. Setup the postgres server referring to [https://debezium.io/documentation/reference/stable/connectors/postgresql.html#setting-up-postgresql](https://debezium.io/documentation/reference/stable/connectors/postgresql.html#setting-up-postgresql).
- 2. Download the postgres jdbc jar and place in &lt;Product Home>/lib.
- 3. Download the cdc-orbit jar from [here](https://maven.wso2.org/nexus/content/repositories/public/org/wso2/orbit/debezium/debezium/) and place in &lt;Product Home>/dropins.
+ 2. Download the postgres jdbc jar and place in `<Product Home>/lib`.
+ 3. Download the cdc-orbit jar from [here](https://maven.wso2.org/nexus/content/repositories/public/org/wso2/orbit/debezium/debezium/) and place in `<Product Home>/dropins`.
  4. Follow the steps 12, 13, 14, 15 under [Mysql](#1-mysql), modifying the params in Synapse config file.
 
-### 3.SQL Server
+#### 3.SQL Server
 1. Setup SQL server referring to [https://debezium.io/documentation/reference/stable/connectors/sqlserver.html#setting-up-sqlserver](https://debezium.io/documentation/reference/stable/connectors/sqlserver.html#setting-up-sqlserver).
-2. Download the Mssql jdbc jar and place in &lt;Product Home>/lib.
-3. Download the cdc-orbit jar from [here](https://maven.wso2.org/nexus/content/repositories/public/org/wso2/orbit/debezium/debezium/) and place in &lt;Product Home>/dropins.
+2. Download the Mssql jdbc jar and place in `<Product Home>/lib`.
+3. Download the cdc-orbit jar from [here](https://maven.wso2.org/nexus/content/repositories/public/org/wso2/orbit/debezium/debezium/) and place in `<Product Home>/dropins`.
    Follow the steps 12, 13, 14, 15 under [Mysql](#1-mysql), modifying the params in Synapse config file.
 
-### 4.Oracle
+#### 4.Oracle
 1. Set up the Oracle database referring to [https://debezium.io/documentation/reference/stable/connectors/oracle.html#setting-up-oracle](https://debezium.io/documentation/reference/stable/connectors/oracle.html#setting-up-oracle).
-2. Download the Oracle jdbc jar and place in &lt;Product Home>/lib.
-3. Download the cdc-orbit jar from [here](https://maven.wso2.org/nexus/content/repositories/public/org/wso2/orbit/debezium/debezium/) and place in &lt;Product Home>/dropins.
+2. Download the Oracle jdbc jar and place in `<Product Home>/lib`.
+3. Download the cdc-orbit jar from [here](https://maven.wso2.org/nexus/content/repositories/public/org/wso2/orbit/debezium/debezium/) and place in `<Product Home>/dropins`.
 4. Follow the steps 12, 13, 14, 15 under [Mysql](#1-mysql), modifying the params in Synapse config file.
 
 
-## Clustering scenarios	
+### Clustering scenarios	
 
 1. Setup MI cluster refering to [https://apim.docs.wso2.com/en/latest/install-and-setup/setup/mi-setup/deployment/deploying_wso2_ei/#](https://apim.docs.wso2.com/en/latest/install-and-setup/setup/mi-setup/deployment/deploying_wso2_ei/#).
 2. Make sure that the server.id param is unique across all the CDC Inbound endpoints in the cluster. If not, change the server.id param (When listening to  MySQL databases)

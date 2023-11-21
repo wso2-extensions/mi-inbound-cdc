@@ -174,7 +174,7 @@
         </repository>
     </distributionManagement>
     <properties>
-        <carbon.mediation.version>4.7.30</carbon.mediation.version>
+        <carbon.mediation.version>4.7.175</carbon.mediation.version>
         <kafka.version>3.3.1</kafka.version>
         <confluent.version>7.4.0</confluent.version>
         <debezium.version>2.1.4.Final.wso2v1</debezium.version>
