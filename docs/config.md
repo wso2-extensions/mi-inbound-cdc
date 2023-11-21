@@ -255,7 +255,7 @@ or
    </td>
    <td>The list of tables from the selected database that the changes for them need to be captured.
 <p>
-Example : `<parameter name="table.include.list">inventory.products</parameter>`
+Example : <code>&lt;parameter name="table.include.list">inventory.products&lt;/parameter></code>
 <p>
 By default, all operations are listened to.
    </td>
@@ -311,7 +311,7 @@ Download the inbound endpoint `org.apache.synapse.cdc.poll-*.jar` JAR file and a
 
 ### Setting up the databases
 
-Apart from the above steps, you need to do the additional configurations in the database level,  to facilitate CDC. 
+Apart from the above steps, you need to do the additional configurations in the database level, to facilitate CDC. 
 
 
 #### 1. MySQL
@@ -322,20 +322,13 @@ Apart from the above steps, you need to do the additional configurations in the 
 
 3. Further, let's assume that you need to listen to the data changes corresponding to insert and delete operations in the products table.
 4. Download the JDBC driver from the MySQL website.
-5. Unzip the archive and Copy the `mysql-connector-java-*-bin.jar` JAR and place it in the `&lt;Product Home>/wso2/lib` directory.
-6. Download the latest Debezium orbit jar from [nexus](https://maven.wso2.org/nexus/content/repositories/public/org/wso2/orbit/debezium/debezium/) and place in `&lt;Product Home>/dropins`.
-
-7. Enable binlog
-
-        [https://debezium.io/documentation/reference/stable/connectors/mysql.html#enable-mysql-binlog](https://debezium.io/documentation/reference/stable/connectors/mysql.html#enable-mysql-binlog)
-
+5. Unzip the archive and Copy the `mysql-connector-java-*-bin.jar` JAR and place it in the `<Product Home>/wso2/lib` directory.
+6. Download the latest Debezium orbit jar from [nexus](https://maven.wso2.org/nexus/content/repositories/public/org/wso2/orbit/debezium/debezium/) and place in `<Product Home>/dropins`.
+7. Enable binlog. [https://debezium.io/documentation/reference/stable/connectors/mysql.html#enable-mysql-binlog](https://debezium.io/documentation/reference/stable/connectors/mysql.html#enable-mysql-binlog)
 8. Enable GTIDs.  [https://debezium.io/documentation/reference/stable/connectors/mysql.html#enable-mysql-gtids](https://debezium.io/documentation/reference/stable/connectors/mysql.html#enable-mysql-gtids)
 9. Configure session timeouts. [https://debezium.io/documentation/reference/stable/connectors/mysql.html#mysql-session-timeouts](https://debezium.io/documentation/reference/stable/connectors/mysql.html#mysql-session-timeouts)
-10. Enable query log events : 
-
-        [https://debezium.io/documentation/reference/stable/connectors/mysql.html#enable-query-log-events](https://debezium.io/documentation/reference/stable/connectors/mysql.html#enable-query-log-events)
-
-11. Validating binlog row value operations : [https://debezium.io/documentation/reference/stable/connectors/mysql.html#validate-binlog-row-value-options](https://debezium.io/documentation/reference/stable/connectors/mysql.html#validate-binlog-row-value-options)
+10. Enable query log events. [https://debezium.io/documentation/reference/stable/connectors/mysql.html#enable-query-log-events](https://debezium.io/documentation/reference/stable/connectors/mysql.html#enable-query-log-events)
+11. Validate binlog row value operations. [https://debezium.io/documentation/reference/stable/connectors/mysql.html#validate-binlog-row-value-options](https://debezium.io/documentation/reference/stable/connectors/mysql.html#validate-binlog-row-value-options)
 12. Create the synapse config file `<inbound_endpoint_name>.xml`  to the inbound endpoint as follows : 
 
     1. Update the host, user name, password for the database.
@@ -376,19 +369,19 @@ Apart from the above steps, you need to do the additional configurations in the 
 
  1. Setup the postgres server referring to [https://debezium.io/documentation/reference/stable/connectors/postgresql.html#setting-up-postgresql](https://debezium.io/documentation/reference/stable/connectors/postgresql.html#setting-up-postgresql).
  2. Download the postgres jdbc jar and place in `<Product Home>/lib`.
- 3. Download the cdc-orbit jar from [here](https://maven.wso2.org/nexus/content/repositories/public/org/wso2/orbit/debezium/debezium/) and place in `<Product Home>/dropins`.
+ 3. Download the latest Debezium orbit jar from [nexus](https://maven.wso2.org/nexus/content/repositories/public/org/wso2/orbit/debezium/debezium/) and place in `<Product Home>/dropins`.
  4. Follow the steps 12, 13, 14, 15 under [Mysql](#1-mysql), modifying the params in Synapse config file.
 
 #### 3.SQL Server
 1. Setup SQL server referring to [https://debezium.io/documentation/reference/stable/connectors/sqlserver.html#setting-up-sqlserver](https://debezium.io/documentation/reference/stable/connectors/sqlserver.html#setting-up-sqlserver).
 2. Download the Mssql jdbc jar and place in `<Product Home>/lib`.
-3. Download the cdc-orbit jar from [here](https://maven.wso2.org/nexus/content/repositories/public/org/wso2/orbit/debezium/debezium/) and place in `<Product Home>/dropins`.
+3. Download the latest Debezium orbit jar from [nexus](https://maven.wso2.org/nexus/content/repositories/public/org/wso2/orbit/debezium/debezium/) and place in `<Product Home>/dropins`.
    Follow the steps 12, 13, 14, 15 under [Mysql](#1-mysql), modifying the params in Synapse config file.
 
 #### 4.Oracle
 1. Set up the Oracle database referring to [https://debezium.io/documentation/reference/stable/connectors/oracle.html#setting-up-oracle](https://debezium.io/documentation/reference/stable/connectors/oracle.html#setting-up-oracle).
 2. Download the Oracle jdbc jar and place in `<Product Home>/lib`.
-3. Download the cdc-orbit jar from [here](https://maven.wso2.org/nexus/content/repositories/public/org/wso2/orbit/debezium/debezium/) and place in `<Product Home>/dropins`.
+3. Download the latest Debezium orbit jar from [nexus](https://maven.wso2.org/nexus/content/repositories/public/org/wso2/orbit/debezium/debezium/) and place in `<Product Home>/dropins`.
 4. Follow the steps 12, 13, 14, 15 under [Mysql](#1-mysql), modifying the params in Synapse config file.
 
 
