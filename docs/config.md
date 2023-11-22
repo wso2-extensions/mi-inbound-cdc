@@ -40,7 +40,7 @@ Given below is a sample CDC Inbound Endpoint configuration that can be used to c
 
 Listed below are the properties used for creating a CDC inbound endpoint.
 
-All the params can be specified in the synapse config files for the CDC Inbound Endpoint, using the following format:
+All parameters can be specified in the Synapse configuration files for the CDC Inbound Endpoint using the following format:
 
 
 ```
@@ -137,7 +137,7 @@ For database related options check <a href="https://debezium.io/documentation/re
    </td>
    <td>This value is required only if <strong>io.debezium.storage.file.history.FileSchemaHistory</strong> was provided for the <code>schema.history.internal</code> value. You need to specify the path to a file where the database schema history is stored.
 <p>
-By default, the file will be stored at <code>&lt;Product home>/cdc/schemaHistory</code> directory
+By default, the file will be stored in the<code>&lt;Product home>/cdc/schemaHistory</code> directory.
    </td>
   </tr>
   <tr>
@@ -167,7 +167,7 @@ Required when <code>schema.history.internal</code> is set to the <code>&lt;…�
    </td>
    <td>Path to file where offsets are to be stored. Required when `offset.storage` is set to the &lt;…>.FileOffsetBackingStore.
 <p>
-By default, the file will be stored at <code>&lt;Product home>/cdc/offsetStorage</code> directory.
+By default, the file will be stored in the <code>&lt;Product home>/cdc/offsetStorage</code> directory.
    </td>
   </tr>
   <tr>
@@ -368,13 +368,13 @@ Apart from the above steps, you need to do the additional configurations in the 
 #### 2. Postgres
 
  1. Setup the postgres server referring to [https://debezium.io/documentation/reference/stable/connectors/postgresql.html#setting-up-postgresql](https://debezium.io/documentation/reference/stable/connectors/postgresql.html#setting-up-postgresql).
- 2. Download the postgres jdbc jar and place in `<Product Home>/lib`.
+ 2. Download the postgres JDBC JAR and place in `<Product Home>/lib`.
  3. Download the latest Debezium orbit jar from [nexus](https://maven.wso2.org/nexus/content/repositories/public/org/wso2/orbit/debezium/debezium/) and place in `<Product Home>/dropins`.
  4. Follow the steps 12, 13, 14, 15 under [Mysql](#1-mysql), modifying the params in Synapse config file.
 
 #### 3.SQL Server
 1. Setup SQL server referring to [https://debezium.io/documentation/reference/stable/connectors/sqlserver.html#setting-up-sqlserver](https://debezium.io/documentation/reference/stable/connectors/sqlserver.html#setting-up-sqlserver).
-2. Download the Mssql jdbc jar and place in `<Product Home>/lib`.
+2. Download the MSSQL JDBC JAR and place in `<Product Home>/lib`.
 3. Download the latest Debezium orbit jar from [nexus](https://maven.wso2.org/nexus/content/repositories/public/org/wso2/orbit/debezium/debezium/) and place in `<Product Home>/dropins`.
    Follow the steps 12, 13, 14, 15 under [Mysql](#1-mysql), modifying the params in Synapse config file.
 
