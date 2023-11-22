@@ -307,7 +307,60 @@ Please note the following points :
 
 ## How to use
 
-Download the inbound endpoint `org.apache.synapse.cdc.poll-*.jar` JAR file and add it in the `<Product Home>/dropins` directory.
+### Configure Micro Integrator
+
+1. Download the JAR file for the inbound endpoint `org.apache.synapse.cdc.poll-*.jar` and add it to the `<Product Home>/dropins` directory.
+2. Download the latest Debezium Orbit JAR from [nexus](https://maven.wso2.org/nexus/content/repositories/public/org/wso2/orbit/debezium/debezium/) and place it in `<Product Home>/dropins`.
+
+### Configure inbound endpoint using WSO2 Integration Studio
+
+1. Download [WSO2 Integration Studio](https://wso2.com/integration/integration-studio/). Create an Integration Project.
+
+2. Right click on **Source** -> **main** -> **synapse-config** -> **inbound-endpoints** and add a new **custom inbound endpoint**.</br>
+
+3. Click on **Inbound Endpoint** in the design view and under the `properties` tab, update the class name to `org.wso2.carbon.inbound.cdc.CDCPollingConsumer`.
+
+4. Navigate to the source view and update it with the following configuration as required.
+
+```xml
+      <inboundEndpoint name="cdc-inbound-endpoint" onError="fault" protocol="cdc" sequence="cdc_process_seq" suspend="false" xmlns="http://ws.apache.org/ns/synapse">
+      <parameters>
+         <parameter name="interval">1000</parameter>
+         <parameter name="name">engine</parameter>
+         <parameter name="snapshot.mode">initial</parameter>
+         <parameter name="sequential">true</parameter>
+         <parameter name="snapshot.max.threads">1</parameter>
+         <parameter name="offset.storage">org.apache.kafka.connect.storage.FileOffsetBackingStore</parameter>
+         <parameter name="offset.storage.file.filename">cdc/offsetStorage/offsets1_.dat</parameter>
+         <parameter name="connector.class">io.debezium.connector.mysql.MySqlConnector</parameter>
+         <parameter name="database.hostname">localhost</parameter>
+         <parameter name="database.port">3306</parameter>
+         <parameter name="database.user">root</parameter>
+         <parameter name="database.password">your_password</parameter>
+         <parameter name="database.dbname">db_name</parameter>
+         <parameter name="database.server.id">8574444</parameter>
+         <parameter name="topic.prefix">topic1</parameter>
+         <parameter name="schema.history.internal">io.debezium.storage.file.history.FileSchemaHistory</parameter>
+         <parameter name="schema.history.internal.file.filename">cdc/schemaHistory/schema_history1_.dat</parameter>
+         <parameter name="table.include.list">inventory.products</parameter>
+         <parameter name="allowed.operations">create, delete</parameter>
+      </parameters>
+    </inboundEndpoint>
+```
+
+- Update the host, username, and password for the database.
+- You can choose a preferred schema history and offset storage option and provide the file locations or kafka topics based on the chosen storage mechanism.
+
+### Exporting Integration Logic as a CApp
+
+**CApp (Carbon Application)** is the deployable artefact on the integration runtime. Let us see how we can export integration logic we developed into a CApp. To export the `Solution Project` as a CApp, a `Composite Application Project` needs to be created. Usually, when a solution project is created, this project is automatically created by Integration Studio. If not, you can specifically create it by navigating to  **File** -> **New** -> **Other** -> **WSO2** -> **Distribution** -> **Composite Application Project**.
+
+1. Right click on Composite Application Project and click on **Export Composite Application Project**.</br>
+
+2. Select an **Export Destination** where you want to save the .car file.
+
+3. In the next **Create a deployable CAR file** screen, select inbound endpoint and sequence artifacts and click **Finish**. The CApp will get created at the specified location provided in the previous step.
+
 
 ### Setting up the databases
 
@@ -322,68 +375,25 @@ Apart from the above steps, you need to do the additional configurations in the 
 
 3. Further, let's assume that you need to listen to the data changes corresponding to insert and delete operations in the products table.
 4. Download the JDBC driver from the MySQL website.
-5. Unzip the archive and Copy the `mysql-connector-java-*-bin.jar` JAR and place it in the `<Product Home>/wso2/lib` directory.
-6. Download the latest Debezium orbit jar from [nexus](https://maven.wso2.org/nexus/content/repositories/public/org/wso2/orbit/debezium/debezium/) and place in `<Product Home>/dropins`.
-7. Enable binlog. [https://debezium.io/documentation/reference/stable/connectors/mysql.html#enable-mysql-binlog](https://debezium.io/documentation/reference/stable/connectors/mysql.html#enable-mysql-binlog)
-8. Enable GTIDs.  [https://debezium.io/documentation/reference/stable/connectors/mysql.html#enable-mysql-gtids](https://debezium.io/documentation/reference/stable/connectors/mysql.html#enable-mysql-gtids)
-9. Configure session timeouts. [https://debezium.io/documentation/reference/stable/connectors/mysql.html#mysql-session-timeouts](https://debezium.io/documentation/reference/stable/connectors/mysql.html#mysql-session-timeouts)
-10. Enable query log events. [https://debezium.io/documentation/reference/stable/connectors/mysql.html#enable-query-log-events](https://debezium.io/documentation/reference/stable/connectors/mysql.html#enable-query-log-events)
-11. Validate binlog row value operations. [https://debezium.io/documentation/reference/stable/connectors/mysql.html#validate-binlog-row-value-options](https://debezium.io/documentation/reference/stable/connectors/mysql.html#validate-binlog-row-value-options)
-12. Create the synapse config file `<inbound_endpoint_name>.xml`  to the inbound endpoint as follows : 
-
-    1. Update the host, user name, password for the database.
-    2. You can choose a preferred schema history and offset storage option and provide the file locations or kafka topics based on the chosen storage mechanism.
-
-```
-<inboundEndpoint name="cdc-inbound-endpoint" onError="fault" protocol="cdc" sequence="cdc_process_seq" suspend="false" xmlns="http://ws.apache.org/ns/synapse">
-   <parameters>
-      <parameter name="interval">1000</parameter>
-      <parameter name="name">engine</parameter>
-      <parameter name="snapshot.mode">initial</parameter>
-      <parameter name="sequential">true</parameter>
-      <parameter name="snapshot.max.threads">1</parameter>
-      <parameter name="offset.storage">org.apache.kafka.connect.storage.FileOffsetBackingStore</parameter>
-      <parameter name="offset.storage.file.filename">cdc/offsetStorage/offsets1_.dat</parameter>
-      <parameter name="connector.class">io.debezium.connector.mysql.MySqlConnector</parameter>
-      <parameter name="database.hostname">localhost</parameter>
-      <parameter name="database.port">3306</parameter>
-      <parameter name="database.user">root</parameter>
-      <parameter name="database.password">your_password</parameter>
-      <parameter name="database.dbname">db_name</parameter>
-      <parameter name="database.server.id">8574444</parameter>
-      <parameter name="topic.prefix">topic1</parameter>
-      <parameter name="schema.history.internal">io.debezium.storage.file.history.FileSchemaHistory</parameter>
-      <parameter name="schema.history.internal.file.filename">cdc/schemaHistory/schema_history1_.dat</parameter>
-      <parameter name="table.include.list">inventory.products</parameter>
-      <parameter name="allowed.operations">create, delete</parameter>
-   </parameters>
-</inboundEndpoint>
-
-```
-
-13. Place the `<inbound_endpoint_name>.xml` file inside `<product home>/repository/deployment/server/synapse-configs/default/inbound-endpoints`.
-14. Place the following sequence file inside `<product home>/repository/deployment/server/synapse-configs/default/sequences`.
-15. Start the Micro Integrator.
+5. Unzip the archive and copy the `mysql-connector-java-*-bin.jar` JAR and place it in the `<Product Home>/wso2/lib` directory.
+6. Enable binlog. [https://debezium.io/documentation/reference/stable/connectors/mysql.html#enable-mysql-binlog](https://debezium.io/documentation/reference/stable/connectors/mysql.html#enable-mysql-binlog)
+7. Enable GTIDs.  [https://debezium.io/documentation/reference/stable/connectors/mysql.html#enable-mysql-gtids](https://debezium.io/documentation/reference/stable/connectors/mysql.html#enable-mysql-gtids)
+8. Configure session timeouts. [https://debezium.io/documentation/reference/stable/connectors/mysql.html#mysql-session-timeouts](https://debezium.io/documentation/reference/stable/connectors/mysql.html#mysql-session-timeouts)
+9. Enable query log events. [https://debezium.io/documentation/reference/stable/connectors/mysql.html#enable-query-log-events](https://debezium.io/documentation/reference/stable/connectors/mysql.html#enable-query-log-events)
+10. Validate binlog row value operations. [https://debezium.io/documentation/reference/stable/connectors/mysql.html#validate-binlog-row-value-options](https://debezium.io/documentation/reference/stable/connectors/mysql.html#validate-binlog-row-value-options)
 
 #### 2. Postgres
 
  1. Setup the postgres server referring to [https://debezium.io/documentation/reference/stable/connectors/postgresql.html#setting-up-postgresql](https://debezium.io/documentation/reference/stable/connectors/postgresql.html#setting-up-postgresql).
  2. Download the postgres JDBC JAR and place in `<Product Home>/lib`.
- 3. Download the latest Debezium orbit jar from [nexus](https://maven.wso2.org/nexus/content/repositories/public/org/wso2/orbit/debezium/debezium/) and place in `<Product Home>/dropins`.
- 4. Follow the steps 12, 13, 14, 15 under [Mysql](#1-mysql), modifying the params in Synapse config file.
 
-#### 3.SQL Server
+#### 3. SQL Server
 1. Setup SQL server referring to [https://debezium.io/documentation/reference/stable/connectors/sqlserver.html#setting-up-sqlserver](https://debezium.io/documentation/reference/stable/connectors/sqlserver.html#setting-up-sqlserver).
 2. Download the MSSQL JDBC JAR and place in `<Product Home>/lib`.
-3. Download the latest Debezium orbit jar from [nexus](https://maven.wso2.org/nexus/content/repositories/public/org/wso2/orbit/debezium/debezium/) and place in `<Product Home>/dropins`.
-   Follow the steps 12, 13, 14, 15 under [Mysql](#1-mysql), modifying the params in Synapse config file.
 
-#### 4.Oracle
+#### 4. Oracle
 1. Set up the Oracle database referring to [https://debezium.io/documentation/reference/stable/connectors/oracle.html#setting-up-oracle](https://debezium.io/documentation/reference/stable/connectors/oracle.html#setting-up-oracle).
 2. Download the Oracle jdbc jar and place in `<Product Home>/lib`.
-3. Download the latest Debezium orbit jar from [nexus](https://maven.wso2.org/nexus/content/repositories/public/org/wso2/orbit/debezium/debezium/) and place in `<Product Home>/dropins`.
-4. Follow the steps 12, 13, 14, 15 under [Mysql](#1-mysql), modifying the params in Synapse config file.
-
 
 ### Clustering scenarios	
 
