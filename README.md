@@ -8,7 +8,7 @@ The CDC inbound protocol is used to perform Change Data Capture in MI. The chang
 
 | Inbound Endpoint version                                                        | Supported WSO2 ESB/EI version |
 |---------------------------------------------------------------------------------|-------------------------------|
-| [1.0.0](https://github.com/wso2-extensions/esb-inbound-cdc/releases/tag/v1.0.0) | MI 4.x.x                      |
+| [1.0.0](https://github.com/wso2-extensions/esb-inbound-cdc/releases/tag/v1.0.0) | MI 4.2.0                      |
 
 ## Getting started
 
