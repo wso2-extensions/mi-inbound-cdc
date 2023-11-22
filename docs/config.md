@@ -309,8 +309,8 @@ Please note the following points :
 
 ### Configure Micro Integrator
 
-1. Download the inbound endpoint `org.apache.synapse.cdc.poll-*.jar` JAR file and add it in the `<Product Home>/dropins` directory.
-2. Download the latest Debezium orbit jar from [nexus](https://maven.wso2.org/nexus/content/repositories/public/org/wso2/orbit/debezium/debezium/) and place in `<Product Home>/dropins`.
+1. Download the JAR file for the inbound endpoint `org.apache.synapse.cdc.poll-*.jar` and add it to the `<Product Home>/dropins` directory.
+2. Download the latest Debezium Orbit JAR from [nexus](https://maven.wso2.org/nexus/content/repositories/public/org/wso2/orbit/debezium/debezium/) and place it in `<Product Home>/dropins`.
 
 ### Configure inbound endpoint using WSO2 Integration Studio
 
@@ -348,7 +348,7 @@ Please note the following points :
     </inboundEndpoint>
 ```
 
-- Update the host, user name, password for the database.
+- Update the host, username, and password for the database.
 - You can choose a preferred schema history and offset storage option and provide the file locations or kafka topics based on the chosen storage mechanism.
 
 ### Exporting Integration Logic as a CApp
@@ -375,7 +375,7 @@ Apart from the above steps, you need to do the additional configurations in the 
 
 3. Further, let's assume that you need to listen to the data changes corresponding to insert and delete operations in the products table.
 4. Download the JDBC driver from the MySQL website.
-5. Unzip the archive and Copy the `mysql-connector-java-*-bin.jar` JAR and place it in the `<Product Home>/wso2/lib` directory.
+5. Unzip the archive and copy the `mysql-connector-java-*-bin.jar` JAR and place it in the `<Product Home>/wso2/lib` directory.
 6. Enable binlog. [https://debezium.io/documentation/reference/stable/connectors/mysql.html#enable-mysql-binlog](https://debezium.io/documentation/reference/stable/connectors/mysql.html#enable-mysql-binlog)
 7. Enable GTIDs.  [https://debezium.io/documentation/reference/stable/connectors/mysql.html#enable-mysql-gtids](https://debezium.io/documentation/reference/stable/connectors/mysql.html#enable-mysql-gtids)
 8. Configure session timeouts. [https://debezium.io/documentation/reference/stable/connectors/mysql.html#mysql-session-timeouts](https://debezium.io/documentation/reference/stable/connectors/mysql.html#mysql-session-timeouts)
