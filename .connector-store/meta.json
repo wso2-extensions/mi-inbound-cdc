@@ -6,7 +6,7 @@
     "description": "The CDC inbound protocol is used to perform Change Data Capture in MI. The changes happening to any external database can be listened to using the CDC inbound endpoint. The CDC protocol uses Debezium to connect with the databases and capture the events. The protocol itself outputs the event via a sequence through the Inbound Endpoint.",
     "status": "Active",
     "labels": [
-        "CDC",
+        "CDC"
     ],
     "releases": [
         {
