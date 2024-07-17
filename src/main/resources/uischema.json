@@ -1,0 +1,142 @@
+{
+  "name": "debeziumInbound",
+  "type": "inbound-connector",
+  "title": "Debezium CDC Connector",
+  "help": "Configure the Debezium connector to capture change events from the specified database.",
+  "elements": [
+    {
+      "type": "attribute",
+      "value": {
+        "name": "offset.storage",
+        "displayName": "Offset Storage",
+        "inputType": "string",
+        "defaultValue": "org.apache.kafka.connect.storage.FileOffsetBackingStore",
+        "required": "true",
+        "helpTip": "Class used to store the offsets of Kafka Connect source records."
+      }
+    },
+    {
+      "type": "attribute",
+      "value": {
+        "name": "offset.storage.file.filename",
+        "displayName": "Offset Storage Filename",
+        "inputType": "string",
+        "required": "true",
+        "helpTip": "Path to the file where offsets are stored."
+      }
+    },
+    {
+      "type": "attribute",
+      "value": {
+        "name": "offset.flush.interval.ms",
+        "displayName": "Offset Flush Interval",
+        "inputType": "string",
+        "required": "true",
+        "helpTip": "Interval in milliseconds at which to flush offset data to storage."
+      }
+    },
+    {
+      "type": "attribute",
+      "value": {
+        "name": "database.password",
+        "displayName": "Database Password",
+        "inputType": "string",
+        "required": "true",
+        "helpTip": "Password for connecting to the database."
+      }
+    },
+    {
+      "type": "attribute",
+      "value": {
+        "name": "database.allowPublicKeyRetrieval",
+        "displayName": "Allow Public Key Retrieval",
+        "inputType": "boolean",
+        "defaultValue": "false",
+        "required": "false",
+        "helpTip": "Allow or disallow public key retrieval for database SSL connection."
+      }
+    },
+    {
+      "type": "attribute",
+      "value": {
+        "name": "topic.prefix",
+        "displayName": "Topic Prefix",
+        "inputType": "string",
+        "required": "true",
+        "helpTip": "Prefix for Kafka topic names where change records are stored."
+      }
+    },
+    {
+      "type": "attribute",
+      "value": {
+        "name": "value.converter",
+        "displayName": "Value Converter",
+        "inputType": "string",
+        "required": "true",
+        "helpTip": "Converter class used to serialize record values."
+      }
+    },
+    {
+      "type": "attribute",
+      "value": {
+        "name": "key.converter",
+        "displayName": "Key Converter",
+        "inputType": "string",
+        "required": "true",
+        "helpTip": "Converter class used to serialize record keys."
+      }
+    },
+    {
+      "type": "attribute",
+      "value": {
+        "name": "value.converter.schemas.enable",
+        "displayName": "Enable Schemas in Value Converter",
+        "inputType": "boolean",
+        "defaultValue": "true",
+        "required": "false",
+        "helpTip": "Enable or disable schema usage in value converter."
+      }
+    },
+    {
+      "type": "attribute",
+      "value": {
+        "name": "key.converter.schemas.enable",
+        "displayName": "Enable Schemas in Key Converter",
+        "inputType": "boolean",
+        "defaultValue": "true",
+        "required": "false",
+        "helpTip": "Enable or disable schema usage in key converter."
+      }
+    },
+    {
+      "type": "attribute",
+      "value": {
+        "name": "schema.history.internal.file.filename",
+        "displayName": "Schema History Filename",
+        "inputType": "string",
+        "required": "false",
+        "helpTip": "File path to store schema history."
+      }
+    },
+    {
+      "type": "attribute",
+      "value": {
+        "name": "skipped.operations",
+        "displayName": "Skipped Operations",
+        "inputType": "string",
+        "required": "false",
+        "helpTip": "Database operations to skip during logging."
+      }
+    },
+    {
+      "type": "attribute",
+      "value": {
+        "name": "allowed.operations",
+        "displayName": "Allowed Operations",
+        "inputType": "string",
+        "required": "false",
+        "helpTip": "Specific database operations to allow."
+      }
+    }
+  ]
+}
