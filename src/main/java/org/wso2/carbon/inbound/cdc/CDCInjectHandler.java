@@ -48,16 +48,14 @@ public class CDCInjectHandler {
     private String injectingSeq;
     private String onErrorSeq;
     private boolean sequential;
-    private Properties cdcProperties;
     private SynapseEnvironment synapseEnvironment;
 
     public CDCInjectHandler(String injectingSeq, String onErrorSeq, boolean sequential,
-                            SynapseEnvironment synapseEnvironment, Properties cdcProperties) {
+                            SynapseEnvironment synapseEnvironment) {
         this.injectingSeq = injectingSeq;
         this.onErrorSeq = onErrorSeq;
         this.sequential = sequential;
         this.synapseEnvironment = synapseEnvironment;
-        this.cdcProperties = cdcProperties;
     }
 
     /**
