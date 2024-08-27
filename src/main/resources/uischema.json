@@ -3,6 +3,7 @@
   "name": "debeziumInbound",
   "type": "inbound-connector",
   "title": "Debezium CDC Connector",
+  "additionalParameters": "true",
   "help": "Configure the Debezium connector to capture change events from the specified database.",
   "elements": [
     {
@@ -114,20 +115,21 @@
           {
             "type": "attribute",
             "value": {
-              "name": "name",
-              "displayName": "Name",
-              "inputType": "string",
-              "required": "true",
-              "helpTip": ""
-            }
-          },
-          {
-            "type": "attribute",
-            "value": {
               "name": "snapshot.mode",
               "displayName": "Snapshot Mode",
-              "inputType": "string",
-              "required": "false",
+              "inputType": "combo",
+              "required": "true",
+              "comboValues": [
+                "always",
+                "initial",
+                "initial_only",
+                "schema_only",
+                "no_data",
+                "recovery",
+                "when_needed",
+                "configuration_based",
+                "custom"
+              ],
               "defaultValue": "initial",
               "helpTip": "Specifies the criteria for running a snapshot when the connector starts. Possible settings are: initial, initial_only, when_needed, never, schema_only, schema_only_recovery."
             }
@@ -139,108 +141,8 @@
               "displayName": "Connector Class",
               "inputType": "string",
               "required": "true",
+              "defaultValue": "io.debezium.connector.mysql.MySqlConnector",
               "helpTip": "The name of the Java class for the connector. Example: For MySQL database, io.debezium.connector.mysql.MySqlConnector"
-            }
-          },
-          {
-            "type": "attribute",
-            "value": {
-              "name": "topic.prefix",
-              "displayName": "Topic Prefix",
-              "inputType": "string",
-              "required": "true",
-              "helpTip": "Topic prefix that provides a namespace for the database server that you want Debezium to capture. The prefix should be unique across all other connectors, since it is used as the prefix for all Kafka topic names that receive records from this connector. Only alphanumeric characters, hyphens, dots, and underscores must be used in the database server logical name."
-            }
-          },
-          {
-            "type": "attribute",
-            "value": {
-              "name": "schema.history.internal",
-              "displayName": "Schema History Internal",
-              "inputType": "string",
-              "required": "false",
-              "defaultValue": "KafkaSchemaHistory",
-              "helpTip": "The name of the Java class that is responsible for persistence of the database schema history. It must implement <…>.SchemaHistory interface."
-            }
-          },
-          {
-            "type": "attribute",
-            "value": {
-              "name": "schema.history.internal.file.filename",
-              "displayName": "Schema History Internal File Filename",
-              "inputType": "string",
-              "required": "false",
-              "helpTip": "This value is required only if io.debezium.storage.file.history.FileSchemaHistory was provided for the schema.history.internal value. You need to specify the path to a file where the database schema history is stored. By default, the file will be stored in the <Product home>/cdc/schemaHistory directory."
-            }
-          },
-          {
-            "type": "attribute",
-            "value": {
-              "name": "schema.history.internal.kafka.topic",
-              "displayName": "Schema History Internal Kafka Topic",
-              "inputType": "string",
-              "required": "false",
-              "helpTip": "The Kafka topic where the database schema history is stored. Required when schema.history.internal is set to the <…>.KafkaSchemaHistory."
-            }
-          },
-          {
-            "type": "attribute",
-            "value": {
-              "name": "schema.history.internal.kafka.bootstrap.servers",
-              "displayName": "Schema History Internal Kafka Bootstrap Servers",
-              "inputType": "string",
-              "required": "false",
-              "helpTip": "The initial list of Kafka cluster servers to connect to. The cluster provides the topic to store the database schema history. Required when schema.history.internal is set to the <…>.KafkaSchemaHistory."
-            }
-          },
-          {
-            "type": "attribute",
-            "value": {
-              "name": "offset.storage",
-              "displayName": "Offset Storage",
-              "inputType": "string",
-              "required": "false",
-              "helpTip": "The name of the Java class that is responsible for persistence of connector offsets. It must implement <…>.OffsetBackingStore interface."
-            }
-          },
-          {
-            "type": "attribute",
-            "value": {
-              "name": "offset.storage.file.filename",
-              "displayName": "Offset Storage File Filename",
-              "inputType": "string",
-              "required": "false",
-              "helpTip": "Path to file where offsets are to be stored. Required when offset.storage is set to the <…>.FileOffsetBackingStore. By default, the file will be stored in the <Product home>/cdc/offsetStorage directory."
-            }
-          },
-          {
-            "type": "attribute",
-            "value": {
-              "name": "offset.storage.topic",
-              "displayName": "Offset Storage Topic",
-              "inputType": "string",
-              "required": "false",
-              "helpTip": "The name of the Kafka topic where offsets are to be stored. Required when offset.storage is set to the <…>.KafkaOffsetBackingStore."
-            }
-          },
-          {
-            "type": "attribute",
-            "value": {
-              "name": "offset.storage.partitions",
-              "displayName": "Offset Storage Partitions",
-              "inputType": "string",
-              "required": "false",
-              "helpTip": "The number of partitions used when creating the offset storage topic. Required when offset.storage is set to the <…>.KafkaOffsetBackingStore."
-            }
-          },
-          {
-            "type": "attribute",
-            "value": {
-              "name": "offset.storage.replication.factor",
-              "displayName": "Offset Storage Replication Factor",
-              "inputType": "string",
-              "required": "false",
-              "helpTip": "Replication factor used when creating the offset storage topic. Required when offset.storage is set to the <…>.KafkaOffsetBackingStore."
             }
           },
           {
@@ -340,7 +242,117 @@
               "displayName": "Allowed Operations",
               "inputType": "string",
               "required": "false",
-              "helpTip": "Operations that the user needs to listen to, in the specified database tables. Should provide comma separated values for create/update/delete/truncate. By default, truncate operations are skipped."
+              "helpTip": "Comma separated values. Ex: create, update, delete, truncate. By default, truncate operations are skipped."
+            }
+          },
+          {
+            "type": "attribute",
+            "value": {
+              "name": "connector.name",
+              "displayName": "Connector Name",
+              "inputType": "string",
+              "required": "false",
+              "helpTip": "Unique name for the connector."
+            }
+          },
+          {
+            "type": "attribute",
+            "value": {
+              "name": "topic.prefix",
+              "displayName": "Topic Prefix",
+              "inputType": "string",
+              "required": "false",
+              "helpTip": "Topic prefix that provides a namespace for the database server that you want Debezium to capture. The prefix should be unique across all other connectors, since it is used as the prefix for all Kafka topic names that receive records from this connector. Only alphanumeric characters, hyphens, dots, and underscores must be used in the database server logical name."
+            }
+          },
+          {
+            "type": "attribute",
+            "value": {
+              "name": "schema.history.internal",
+              "displayName": "Schema History Internal",
+              "inputType": "string",
+              "required": "false",
+              "helpTip": "The name of the Java class that is responsible for persistence of the database schema history. It must implement <…>.SchemaHistory interface."
+            }
+          },
+          {
+            "type": "attribute",
+            "value": {
+              "name": "schema.history.internal.file.filename",
+              "displayName": "Schema History Internal File Filename",
+              "inputType": "string",
+              "required": "false",
+              "helpTip": "This value is required only if io.debezium.storage.file.history.FileSchemaHistory was provided for the schema.history.internal value. You need to specify the path to a file where the database schema history is stored. By default, the file will be stored in the <Product home>/cdc/schemaHistory directory."
+            }
+          },
+          {
+            "type": "attribute",
+            "value": {
+              "name": "schema.history.internal.kafka.topic",
+              "displayName": "Schema History Internal Kafka Topic",
+              "inputType": "string",
+              "required": "false",
+              "helpTip": "The Kafka topic where the database schema history is stored. Required when schema.history.internal is set to the <…>.KafkaSchemaHistory."
+            }
+          },
+          {
+            "type": "attribute",
+            "value": {
+              "name": "schema.history.internal.kafka.bootstrap.servers",
+              "displayName": "Schema History Internal Kafka Bootstrap Servers",
+              "inputType": "string",
+              "required": "false",
+              "helpTip": "The initial list of Kafka cluster servers to connect to. The cluster provides the topic to store the database schema history. Required when schema.history.internal is set to the <…>.KafkaSchemaHistory."
+            }
+          },
+          {
+            "type": "attribute",
+            "value": {
+              "name": "offset.storage",
+              "displayName": "Offset Storage",
+              "inputType": "string",
+              "required": "false",
+              "helpTip": "The name of the Java class that is responsible for persistence of connector offsets. It must implement <…>.OffsetBackingStore interface."
+            }
+          },
+          {
+            "type": "attribute",
+            "value": {
+              "name": "offset.storage.file.filename",
+              "displayName": "Offset Storage File Filename",
+              "inputType": "string",
+              "required": "false",
+              "helpTip": "Path to file where offsets are to be stored. Required when offset.storage is set to the <…>.FileOffsetBackingStore. By default, the file will be stored in the <Product home>/cdc/offsetStorage directory."
+            }
+          },
+          {
+            "type": "attribute",
+            "value": {
+              "name": "offset.storage.topic",
+              "displayName": "Offset Storage Topic",
+              "inputType": "string",
+              "required": "false",
+              "helpTip": "The name of the Kafka topic where offsets are to be stored. Required when offset.storage is set to the <…>.KafkaOffsetBackingStore."
+            }
+          },
+          {
+            "type": "attribute",
+            "value": {
+              "name": "offset.storage.partitions",
+              "displayName": "Offset Storage Partitions",
+              "inputType": "string",
+              "required": "false",
+              "helpTip": "The number of partitions used when creating the offset storage topic. Required when offset.storage is set to the <…>.KafkaOffsetBackingStore."
+            }
+          },
+          {
+            "type": "attribute",
+            "value": {
+              "name": "offset.storage.replication.factor",
+              "displayName": "Offset Storage Replication Factor",
+              "inputType": "string",
+              "required": "false",
+              "helpTip": "Replication factor used when creating the offset storage topic. Required when offset.storage is set to the <…>.KafkaOffsetBackingStore."
             }
           },
           {
