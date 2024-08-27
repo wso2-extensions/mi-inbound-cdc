@@ -83,8 +83,7 @@ public class CDCPollingConsumer extends GenericPollingConsumer {
         this.synapseEnvironment = synapseEnvironment;
         this.scanInterval = scanInterval;
         this.lastRanTime = null;
-        registerHandler(new CDCInjectHandler(injectingSeq, onErrorSeq, sequential,
-                synapseEnvironment, cdcProperties));
+        registerHandler(new CDCInjectHandler(injectingSeq, onErrorSeq, sequential, synapseEnvironment));
         setProperties();
     }
 
