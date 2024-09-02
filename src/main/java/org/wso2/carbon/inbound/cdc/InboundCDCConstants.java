@@ -22,6 +22,9 @@ class InboundCDCConstants {
 
     /** Inbound Endpoint Parameters **/
 
+    public static final String CONNECTOR_NAME = "connector.name";
+    public static final String DEBEZIUM_NAME = "name";
+    public static final String DEBEZIUM_INCLUDE_SCHEMA_CHANGES = "include.schema.changes";
     public static final String DEBEZIUM_OFFSET_STORAGE = "offset.storage";
     public static final String DEBEZIUM_OFFSET_STORAGE_FILE_FILENAME = "offset.storage.file.filename";
     public static final String DEBEZIUM_OFFSET_FLUSH_INTERVAL_MS = "offset.flush.interval.ms";
@@ -58,5 +61,6 @@ class InboundCDCConstants {
     public static final String TABLE = "table";
 
     public static final String TRUE = "true";
+    public static final String FALSE = "false";
 
 }
