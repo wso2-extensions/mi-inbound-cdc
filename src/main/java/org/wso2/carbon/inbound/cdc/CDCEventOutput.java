@@ -36,7 +36,7 @@ public class CDCEventOutput {
 
     private JsonObject payload;
 
-    private enum operations {c, r, u, d};
+    private enum operations {c, r, u, d, t};
 
     CDCEventOutput(ChangeEvent event) {
         String valueString = event.value().toString();
@@ -99,6 +99,8 @@ public class CDCEventOutput {
                     return "UPDATE";
                 case d:
                     return "DELETE";
+                case t:
+                    return "TRUNCATE";
             }
         }
         return null;
