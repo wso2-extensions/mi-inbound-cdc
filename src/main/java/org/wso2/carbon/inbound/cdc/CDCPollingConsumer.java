@@ -54,6 +54,10 @@ import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.DEBEZIUM_SKIPPED_O
 import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.FILE_SCHEMA_HISTORY_STORAGE_CLASS;
 import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.FILE_OFFSET_STORAGE_CLASS;
 import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.TRUE;
+import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.FALSE;
+import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.DEBEZIUM_NAME;
+import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.CONNECTOR_NAME;
+import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.DEBEZIUM_INCLUDE_SCHEMA_CHANGES;
 
 /**
  * This class implement the processing logic related to inbound CDC protocol.
@@ -173,6 +177,15 @@ public class CDCPollingConsumer extends GenericPollingConsumer {
     private void setProperties () {
         logger.info("Initializing the CDC properties");
         try {
+            // Set to false since the CDC inbound endpoint currently doesn't support capturing schema changes.
+            this.cdcProperties.setProperty(DEBEZIUM_INCLUDE_SCHEMA_CHANGES, FALSE);
+
+            if (this.cdcProperties.getProperty(CONNECTOR_NAME) == null) {
+                this.cdcProperties.setProperty(DEBEZIUM_NAME, this.inboundEndpointName);
+            } else {
+                this.cdcProperties.setProperty(DEBEZIUM_NAME, this.cdcProperties.getProperty(CONNECTOR_NAME));
+            }
+
             if (this.cdcProperties.getProperty(DEBEZIUM_OFFSET_STORAGE) == null) {
                 this.cdcProperties.setProperty(DEBEZIUM_OFFSET_STORAGE, FILE_OFFSET_STORAGE_CLASS);
             }
@@ -229,7 +242,6 @@ public class CDCPollingConsumer extends GenericPollingConsumer {
                 createFile(filePath);
                 this.cdcProperties.setProperty(DEBEZIUM_SCHEMA_HISTORY_INTERNAL_FILE_FILENAME, filePath);
             }
-
         } catch (IOException e) {
             String msg = "Error while setting the CDC Properties";
             logger.error(msg);
