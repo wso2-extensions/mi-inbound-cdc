@@ -255,7 +255,7 @@
               "displayName": "Connector Name",
               "inputType": "string",
               "required": "false",
-              "helpTip": "Unique name for the connector."
+              "helpTip": "Unique name for the Debezium connector instance. The inbound endpoint name is used as default."
             }
           },
           {
