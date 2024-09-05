@@ -90,7 +90,7 @@
               "inputType": "checkbox",
               "defaultValue": true,
               "required": "false",
-              "helpTip": "The behaviour when executing the given sequence."
+              "helpTip": "The behavior when executing the given sequence."
             }
           },
           {
@@ -131,7 +131,7 @@
                 "custom"
               ],
               "defaultValue": "initial",
-              "helpTip": "Specifies the criteria for running a snapshot when the connector starts. Possible settings are: initial, initial_only, when_needed, never, schema_only, schema_only_recovery."
+              "helpTip": "Specifies the criteria for running a snapshot when the connector starts."
             }
           },
           {
@@ -142,7 +142,7 @@
               "inputType": "string",
               "required": "true",
               "defaultValue": "io.debezium.connector.mysql.MySqlConnector",
-              "helpTip": "The name of the Java class for the connector. Example: For MySQL database, io.debezium.connector.mysql.MySqlConnector"
+              "helpTip": "The name of the Java class for the connector."
             }
           },
           {
@@ -152,7 +152,7 @@
               "displayName": "Database Hostname",
               "inputType": "string",
               "required": "true",
-              "helpTip": "IP address or host name of the database server."
+              "helpTip": "IP address or hostname of the database server."
             }
           },
           {
@@ -182,7 +182,7 @@
               "displayName": "Database Password",
               "inputType": "string",
               "required": "true",
-              "helpTip": "The password to connect to the database. Example: <parameter name=\"database.password\">your_password</parameter> or <parameter name=\"database.password\">{wso2:vault-lookup(password_alias')}</parameter>"
+              "helpTip": "The password to connect to the database."
             }
           },
           {
@@ -192,7 +192,7 @@
               "displayName": "Database Name",
               "inputType": "string",
               "required": "true",
-              "helpTip": "The name of the database that needs to be listened to. *This is applicable only for MySQL, Postgres and Oracle."
+              "helpTip": "The name of the database that needs to be listened to."
             }
           },
           {
@@ -202,7 +202,8 @@
               "displayName": "Database Instance",
               "inputType": "string",
               "required": "false",
-              "helpTip": "Specifies the instance name of the SQL Server named instance. *This is applicable only for SQL Server."
+              "helpTip": "Specifies the instance name of the SQL Server named instance.",
+              "enableCondition": [{"connector.class": "io.debezium.connector.sqlserver.SqlServerConnector"}]
             }
           },
           {
@@ -212,7 +213,8 @@
               "displayName": "Database Names",
               "inputType": "string",
               "required": "false",
-              "helpTip": "The comma-separated list of the SQL Server database names from which to stream the changes. *This is applicable only for SQL Server."
+              "helpTip": "The comma-separated list of the SQL Server database names from which to stream the changes.",
+              "enableCondition": [{"connector.class": "io.debezium.connector.sqlserver.SqlServerConnector"}]
             }
           },
           {
@@ -222,7 +224,8 @@
               "displayName": "Database Server ID",
               "inputType": "string",
               "required": "false",
-              "helpTip": "A numeric ID of this database client, which must be unique across all currently-running database processes in the MySQL cluster. *This is applicable only for MySQL."
+              "helpTip": "A unique numeric ID for this database client across all active database processes in the cluster.",
+              "enableCondition": ["OR", {"connector.class": "io.debezium.connector.mysql.MySqlConnector"}, {"connector.class": "io.debezium.connector.mariadb.MariaDbConnector"}]
             }
           },
           {
@@ -232,7 +235,7 @@
               "displayName": "Table Include List",
               "inputType": "string",
               "required": "false",
-              "helpTip": "The list of tables from the selected database that the changes for them need to be captured. Example: <parameter name=\"table.include.list\">inventory.products</parameter>. By default, all operations are listened to."
+              "helpTip": "Comma-separated list of tables for which changes need to be captured."
             }
           },
           {
@@ -242,7 +245,7 @@
               "displayName": "Allowed Operations",
               "inputType": "string",
               "required": "false",
-              "helpTip": "Comma separated values. Ex: create, update, delete, truncate. By default, truncate operations are skipped."
+              "helpTip": "Comma separated values. Ex: create, update, delete, truncate."
             }
           },
           {
@@ -262,7 +265,7 @@
               "displayName": "Topic Prefix",
               "inputType": "string",
               "required": "false",
-              "helpTip": "Topic prefix that provides a namespace for the database server that you want Debezium to capture. The prefix should be unique across all other connectors, since it is used as the prefix for all Kafka topic names that receive records from this connector. Only alphanumeric characters, hyphens, dots, and underscores must be used in the database server logical name."
+              "helpTip": "The prefix, used for all Kafka topic names, must be unique across all connectors."
             }
           },
           {
@@ -272,7 +275,7 @@
               "displayName": "Schema History Internal",
               "inputType": "string",
               "required": "false",
-              "helpTip": "The name of the Java class that is responsible for persistence of the database schema history. It must implement <…>.SchemaHistory interface."
+              "helpTip": "The Java class that persists the database schema history."
             }
           },
           {
@@ -282,7 +285,8 @@
               "displayName": "Schema History Internal File Filename",
               "inputType": "string",
               "required": "false",
-              "helpTip": "This value is required only if io.debezium.storage.file.history.FileSchemaHistory was provided for the schema.history.internal value. You need to specify the path to a file where the database schema history is stored. By default, the file will be stored in the <Product home>/cdc/schemaHistory directory."
+              "helpTip": "Specify the file path where the database schema history is stored.",
+              "enableCondition": [{"schema.history.internal": "io.debezium.storage.file.history.FileSchemaHistory"}]
             }
           },
           {
@@ -292,7 +296,8 @@
               "displayName": "Schema History Internal Kafka Topic",
               "inputType": "string",
               "required": "false",
-              "helpTip": "The Kafka topic where the database schema history is stored. Required when schema.history.internal is set to the <…>.KafkaSchemaHistory."
+              "helpTip": "The Kafka topic storing the database schema history.",
+              "enableCondition": [{"schema.history.internal": "io.debezium.storage.kafka.history.KafkaSchemaHistory"}]
             }
           },
           {
@@ -302,7 +307,8 @@
               "displayName": "Schema History Internal Kafka Bootstrap Servers",
               "inputType": "string",
               "required": "false",
-              "helpTip": "The initial list of Kafka cluster servers to connect to. The cluster provides the topic to store the database schema history. Required when schema.history.internal is set to the <…>.KafkaSchemaHistory."
+              "helpTip": "The initial list of Kafka cluster servers to connect.",
+              "enableCondition": [{"schema.history.internal": "io.debezium.storage.kafka.history.KafkaSchemaHistory"}]
             }
           },
           {
@@ -312,7 +318,7 @@
               "displayName": "Offset Storage",
               "inputType": "string",
               "required": "false",
-              "helpTip": "The name of the Java class that is responsible for persistence of connector offsets. It must implement <…>.OffsetBackingStore interface."
+              "helpTip": "The Java class that persists connector offsets."
             }
           },
           {
@@ -322,7 +328,8 @@
               "displayName": "Offset Storage File Filename",
               "inputType": "string",
               "required": "false",
-              "helpTip": "Path to file where offsets are to be stored. Required when offset.storage is set to the <…>.FileOffsetBackingStore. By default, the file will be stored in the <Product home>/cdc/offsetStorage directory."
+              "helpTip": "Path to file where offsets are to be stored.",
+              "enableCondition": [{"offset.storage": "org.apache.kafka.connect.storage.FileOffsetBackingStore"}]
             }
           },
           {
@@ -332,7 +339,8 @@
               "displayName": "Offset Storage Topic",
               "inputType": "string",
               "required": "false",
-              "helpTip": "The name of the Kafka topic where offsets are to be stored. Required when offset.storage is set to the <…>.KafkaOffsetBackingStore."
+              "helpTip": "The Kafka topic where offsets are stored.",
+              "enableCondition": [{"offset.storage": "org.apache.kafka.connect.storage.KafkaOffsetBackingStore"}]
             }
           },
           {
@@ -342,7 +350,8 @@
               "displayName": "Offset Storage Partitions",
               "inputType": "string",
               "required": "false",
-              "helpTip": "The number of partitions used when creating the offset storage topic. Required when offset.storage is set to the <…>.KafkaOffsetBackingStore."
+              "helpTip": "The number of partitions for the offset storage topic.",
+              "enableCondition": [{"offset.storage": "org.apache.kafka.connect.storage.KafkaOffsetBackingStore"}]
             }
           },
           {
@@ -352,7 +361,8 @@
               "displayName": "Offset Storage Replication Factor",
               "inputType": "string",
               "required": "false",
-              "helpTip": "Replication factor used when creating the offset storage topic. Required when offset.storage is set to the <…>.KafkaOffsetBackingStore."
+              "helpTip": "The replication factor for the offset storage topic.",
+              "enableCondition": [{"offset.storage": "org.apache.kafka.connect.storage.KafkaOffsetBackingStore"}]
             }
           },
           {
@@ -362,7 +372,8 @@
               "displayName": "Database Out Server Name",
               "inputType": "string",
               "required": "false",
-              "helpTip": "Name of the XStream outbound server configured in the database. *Only applicable if you are using Oracle database."
+              "helpTip": "The name of the XStream outbound server configured in the database.",
+              "enableCondition": [{"connector.class": "io.debezium.connector.oracle.OracleConnector"}]
             }
           }
         ]
