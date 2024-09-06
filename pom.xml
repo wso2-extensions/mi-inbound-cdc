@@ -22,7 +22,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.apache.synapse.inbound.cdc</groupId>
     <artifactId>org.apache.synapse.cdc.poll</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
     <name>CDC Polling Consumer</name>
     <url>http://wso2.org</url>
     <packaging>bundle</packaging>
