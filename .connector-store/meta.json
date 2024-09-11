@@ -2,7 +2,7 @@
     "name": "CDC (Inbound)",
     "owner": "WSO2",
     "category": "Inbound Endpoint",
-    "documentationUrl": "",
+    "documentationUrl": "https://mi.docs.wso2.com/en/latest/reference/connectors/cdc-inbound-endpoint/cdc-inbound-endpoint-overview/",
     "description": "The CDC inbound protocol is used to perform Change Data Capture in MI. The changes happening to any external database can be listened to using the CDC inbound endpoint. The CDC protocol uses Debezium to connect with the databases and capture the events. The protocol itself outputs the event via a sequence through the Inbound Endpoint.",
     "status": "Active",
     "labels": [
@@ -12,7 +12,8 @@
         {
             "tagName": "v1.1.0",
             "products": [
-                "MI 4.2.0"
+                "MI 4.2.0",
+                "MI 4.3.0"
             ],
             "isHidden": false
         }
