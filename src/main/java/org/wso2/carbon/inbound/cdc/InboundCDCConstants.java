@@ -44,6 +44,7 @@ class InboundCDCConstants {
     public static final String DEBEZIUM_SKIPPED_OPERATIONS = "skipped.operations";
     public static final String DEBEZIUM_ALLOWED_OPERATIONS = "allowed.operations";
 
+    public static final String CDC_PRESERVE_EVENT = "preserve.event";
 
     /** Output Properties **/
     public static final String CDC_DATABASE_NAME = "cdc.database";

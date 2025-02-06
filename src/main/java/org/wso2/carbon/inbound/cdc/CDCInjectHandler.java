@@ -36,6 +36,7 @@ import org.apache.synapse.transport.customlogsetter.CustomLogSetter;
 
 import java.util.Properties;
 
+import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.CDC_PRESERVE_EVENT;
 import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.CDC_DATABASE_NAME;
 import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.CDC_OPERATIONS;
 import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.CDC_TABLES;
@@ -49,13 +50,15 @@ public class CDCInjectHandler {
     private String onErrorSeq;
     private boolean sequential;
     private SynapseEnvironment synapseEnvironment;
+    private boolean preserveEvent;
 
     public CDCInjectHandler(String injectingSeq, String onErrorSeq, boolean sequential,
-                            SynapseEnvironment synapseEnvironment) {
+                            SynapseEnvironment synapseEnvironment, boolean preserveEvent) {
         this.injectingSeq = injectingSeq;
         this.onErrorSeq = onErrorSeq;
         this.sequential = sequential;
         this.synapseEnvironment = synapseEnvironment;
+        this.preserveEvent = preserveEvent;
     }
 
     /**
@@ -91,9 +94,13 @@ public class CDCInjectHandler {
 
             OMElement documentElement = null;
             try {
-                documentElement = JsonUtil.getNewJsonPayload(axis2MsgCtx,
-                        cdcEventOutput.getOutputJsonPayload().toString(), true, true);
-
+                if (preserveEvent) {
+                    documentElement = JsonUtil.getNewJsonPayload(axis2MsgCtx,
+                            cdcEventOutput.getOriginalJsonPayload().toString(), true, true);
+                } else {
+                    documentElement = JsonUtil.getNewJsonPayload(axis2MsgCtx,
+                            cdcEventOutput.getOutputJsonPayload().toString(), true, true);
+                }
             } catch (AxisFault ex) {
                 logger.error("Error while creating the OMElement");
                 handleError(ex);
