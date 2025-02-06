@@ -103,6 +103,17 @@
               "required": "false",
               "helpTip": "In a clustered setup, this will run the inbound only in a single worker node."
             }
+          },
+          {
+            "type": "attribute",
+            "value": {
+              "name": "preserve.event",
+              "displayName": "Preserve Event",
+              "inputType": "checkbox",
+              "defaultValue": false,
+              "required": "false",
+              "helpTip": "Enable this to preserve the original event payload."
+            }
           }
         ]
       }

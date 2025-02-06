@@ -116,4 +116,8 @@ public class CDCEventOutput {
         jsonPayload.add(AFTER, getJsonPayloadAfterEvent());
         return jsonPayload;
     }
+
+    public  JsonObject getOriginalJsonPayload () {
+        return payload;
+    }
 }

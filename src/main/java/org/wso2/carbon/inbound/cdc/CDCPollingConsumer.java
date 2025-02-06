@@ -37,6 +37,7 @@ import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.CDC_PRESERVE_EVENT;
 import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.DEBEZIUM_ALLOWED_OPERATIONS;
 import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.DEBEZIUM_DATABASE_ALLOW_PUBLIC_KEY_RETRIEVAL;
 import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.DEBEZIUM_DATABASE_PASSWORD;
@@ -87,7 +88,11 @@ public class CDCPollingConsumer extends GenericPollingConsumer {
         this.synapseEnvironment = synapseEnvironment;
         this.scanInterval = scanInterval;
         this.lastRanTime = null;
-        registerHandler(new CDCInjectHandler(injectingSeq, onErrorSeq, sequential, synapseEnvironment));
+
+        boolean preserveEvent = Boolean.parseBoolean(
+                cdcProperties.getProperty(CDC_PRESERVE_EVENT));
+
+        registerHandler(new CDCInjectHandler(injectingSeq, onErrorSeq, sequential, synapseEnvironment, preserveEvent));
         setProperties();
     }
 
@@ -220,6 +225,11 @@ public class CDCPollingConsumer extends GenericPollingConsumer {
 
             if (this.cdcProperties.getProperty(DEBEZIUM_TOPIC_PREFIX) == null) {
                 this.cdcProperties.setProperty(DEBEZIUM_TOPIC_PREFIX, this.name +"_topic");
+            }
+
+            if (this.cdcProperties.getProperty(CDC_PRESERVE_EVENT) == null) {
+                boolean preserveEvent = Boolean.parseBoolean(this.cdcProperties.getProperty(CDC_PRESERVE_EVENT));
+                this.cdcProperties.setProperty(CDC_PRESERVE_EVENT, String.valueOf(preserveEvent));
             }
 
             // set the output format as json in a way a user cannot override
