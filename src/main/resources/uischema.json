@@ -1,10 +1,10 @@
 {
   "id": "org.wso2.carbon.inbound.cdc.CDCPollingConsumer",
   "name": "debeziumInbound",
-  "type": "inbound-connector",
-  "title": "Debezium CDC Connector",
+  "type": "event-integration",
+  "title": "Debezium CDC",
   "additionalParameters": "true",
-  "help": "Configure the Debezium connector to capture change events from the specified database.",
+  "help": "Configure Debezium to capture change events from the specified database.",
   "elements": [
     {
       "type": "attributeGroup",
@@ -15,10 +15,10 @@
             "type": "attribute",
             "value": {
               "name": "name",
-              "displayName": "Inbound Endpoint Name",
+              "displayName": "Event Integration Name",
               "inputType": "string",
               "required": "true",
-              "helpTip": "Unique identifier for the CDC inbound endpoint."
+              "helpTip": "Unique identifier for the CDC event integration."
             }
           },
           {
@@ -35,10 +35,22 @@
           {
             "type": "attribute",
             "value": {
+              "name": "generateSequences",
+              "displayName": "Automatically generate sequences",
+              "inputType": "checkbox",
+              "defaultValue": true,
+              "required": "true"
+            }
+          },
+          {
+            "type": "attribute",
+            "value": {
               "name": "sequence",
               "displayName": "Injecting Sequence Name",
-              "inputType": "string",
+              "inputType": "keyOrExpression",
+              "keyType": "sequence",
               "required": "true",
+              "enableCondition": [{"generateSequences":false}],
               "helpTip": "Sequence to inject the CDC message"
             }
           },
@@ -47,8 +59,10 @@
             "value": {
               "name": "onError",
               "displayName": "Error Sequence Name",
-              "inputType": "string",
+              "inputType": "keyOrExpression",
+              "keyType": "sequence",
               "required": "true",
+              "enableCondition": [{"generateSequences":false}],
               "helpTip": "Error sequence to invoke on fault"
             }
           },
