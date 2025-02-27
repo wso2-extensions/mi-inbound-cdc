@@ -124,11 +124,11 @@
     </repositories>
     <scm>
         <connection>
-            scm:git:https://github.com/wso2-extensions/esb-inbound-cdc.git
+            scm:git:https://github.com/wso2-extensions/mi-inbound-cdc.git
         </connection>
-        <url>https://github.com/wso2-extensions/esb-inbound-cdc.git</url>
+        <url>https://github.com/wso2-extensions/mi-inbound-cdc.git</url>
         <developerConnection>
-            scm:git:https://github.com/wso2-extensions/esb-inbound-cdc
+            scm:git:https://github.com/wso2-extensions/mi-inbound-cdc
         </developerConnection>
         <tag>HEAD</tag>
     </scm>
