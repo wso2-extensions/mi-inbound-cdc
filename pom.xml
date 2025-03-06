@@ -21,7 +21,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.wso2.integration.inbound</groupId>
     <artifactId>mi-inbound-cdc</artifactId>
-    <version>1.2.2</version>
+    <version>1.2.3-SNAPSHOT</version>
     <name>CDC Polling Consumer</name>
     <url>http://wso2.org</url>
     <packaging>bundle</packaging>
@@ -129,7 +129,7 @@
         <developerConnection>
             scm:git:https://github.com/wso2-extensions/esb-inbound-cdc
         </developerConnection>
-        <tag>v1.2.2</tag>
+        <tag>HEAD</tag>
     </scm>
     <build>
         <plugins>
