@@ -59,6 +59,10 @@ import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.FALSE;
 import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.DEBEZIUM_NAME;
 import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.CONNECTOR_NAME;
 import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.DEBEZIUM_INCLUDE_SCHEMA_CHANGES;
+import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.CDC_MAXIMUM_RETRY_COUNT;
+import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.CDC_DEFAULT_RETRY_COUNT;
+import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.CDC_DEACTIVATE_SEQUENCE;
+import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.WAIT_FOR_COMPLETION_BEFORE_INTERRUPT_MS;
 
 /**
  * This class implement the processing logic related to inbound CDC protocol.
@@ -91,9 +95,24 @@ public class CDCPollingConsumer extends GenericPollingConsumer {
 
         boolean preserveEvent = Boolean.parseBoolean(
                 cdcProperties.getProperty(CDC_PRESERVE_EVENT));
-
-        registerHandler(new CDCInjectHandler(injectingSeq, onErrorSeq, sequential, synapseEnvironment, preserveEvent));
+        int maxRetryCount = getMaxRetryCount(cdcProperties);
+        String onDeactivateSeq = cdcProperties.getProperty(CDC_DEACTIVATE_SEQUENCE);
+        registerHandler(new CDCInjectHandler(this,injectingSeq, onErrorSeq, onDeactivateSeq, sequential, synapseEnvironment,
+                preserveEvent, maxRetryCount));
         setProperties();
+    }
+
+    private static int getMaxRetryCount(Properties cdcProperties) {
+        String maxRetryCount = CDC_DEFAULT_RETRY_COUNT;
+        if (cdcProperties.getProperty(CDC_MAXIMUM_RETRY_COUNT) != null) {
+            maxRetryCount = cdcProperties.getProperty(CDC_MAXIMUM_RETRY_COUNT);
+        }
+        try {
+            return Integer.parseInt(maxRetryCount);
+        }catch (NumberFormatException e) {
+            logger.error("Invalid value for maximum retry count. Using default value of " + CDC_DEFAULT_RETRY_COUNT);
+            return Integer.parseInt(CDC_DEFAULT_RETRY_COUNT);
+        }
     }
 
     /**
@@ -148,9 +167,8 @@ public class CDCPollingConsumer extends GenericPollingConsumer {
             if (engine == null || executorService.isShutdown()) {
                 engine = DebeziumEngine.create(Json.class)
                         .using(this.cdcProperties)
-                        .notifying(record -> {
-                            injectHandler.invoke(record, this.inboundEndpointName);
-                        }).build();
+                        .notifying(new CustomChangeConsumer(injectHandler, this.inboundEndpointName))
+                        .build();
 
                 executorService.execute(engine);
             }
@@ -164,6 +182,20 @@ public class CDCPollingConsumer extends GenericPollingConsumer {
 
     protected Properties getInboundProperties() {
         return cdcProperties;
+    }
+
+    public void deactivate(){
+        logger.warn("Deactivating the CDC Inbound EP : " + inboundEndpointName);
+        try {
+            if (executorService != null && !executorService.isShutdown()) {
+                executorService.shutdownNow();
+            }
+            if (engine != null) {
+                engine.close();
+            }
+        }catch (IOException e) {
+            throw new RuntimeException("Error while closing the Debezium Engine", e);
+        }
     }
 
     public void destroy() {
@@ -251,6 +283,13 @@ public class CDCPollingConsumer extends GenericPollingConsumer {
                 }
                 createFile(filePath);
                 this.cdcProperties.setProperty(DEBEZIUM_SCHEMA_HISTORY_INTERNAL_FILE_FILENAME, filePath);
+            }
+
+            if (this.cdcProperties.getProperty(WAIT_FOR_COMPLETION_BEFORE_INTERRUPT_MS) != null) {
+                this.cdcProperties.setProperty(WAIT_FOR_COMPLETION_BEFORE_INTERRUPT_MS,
+                        this.cdcProperties.getProperty(WAIT_FOR_COMPLETION_BEFORE_INTERRUPT_MS));
+            } else {
+                this.cdcProperties.setProperty(WAIT_FOR_COMPLETION_BEFORE_INTERRUPT_MS, "10000");
             }
         } catch (IOException e) {
             String msg = "Error while setting the CDC Properties";
