@@ -50,8 +50,6 @@ class InboundCDCConstants {
     public static final String CDC_DEFAULT_RETRY_COUNT = "-1"; // Indefinite retry
 
     public static final String CDC_DEACTIVATE_SEQUENCE = "deactivate.sequence";
-    public static final String WAIT_FOR_COMPLETION_BEFORE_INTERRUPT_MS =
-            "debezium.embedded.shutdown.pause.before.interrupt.ms";
 
     /** Output Properties **/
     public static final String CDC_DATABASE_NAME = "cdc.database";

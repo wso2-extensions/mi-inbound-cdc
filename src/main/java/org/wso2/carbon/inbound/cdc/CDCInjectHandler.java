@@ -36,6 +36,7 @@ import org.apache.synapse.mediators.base.SequenceMediator;
 import org.apache.synapse.transport.customlogsetter.CustomLogSetter;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.CDC_DATABASE_NAME;
 import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.CDC_OPERATIONS;
@@ -54,9 +55,8 @@ public class CDCInjectHandler {
     private SynapseEnvironment synapseEnvironment;
     private boolean preserveEvent;
     private int maxRetryCount;
-    private CDCPollingConsumer cdcPollingConsumer;
 
-    public CDCInjectHandler(CDCPollingConsumer cdcPollingConsumer, String injectingSeq, String onErrorSeq, String onDeactivateSeq, boolean sequential,
+    public CDCInjectHandler(String injectingSeq, String onErrorSeq, String onDeactivateSeq, boolean sequential,
                             SynapseEnvironment synapseEnvironment, boolean preserveEvent, int maxRetryCount) {
         this.injectingSeq = injectingSeq;
         this.onErrorSeq = onErrorSeq;
@@ -65,7 +65,6 @@ public class CDCInjectHandler {
         this.synapseEnvironment = synapseEnvironment;
         this.preserveEvent = preserveEvent;
         this.maxRetryCount = maxRetryCount;
-        this.cdcPollingConsumer = cdcPollingConsumer;
     }
 
     /**
@@ -181,41 +180,40 @@ public class CDCInjectHandler {
      * @param inboundEndpointName Name of the inbound endpoint
      * @throws InterruptedException If the thread is interrupted during processing
      */
-    public void handleEvents(List<ChangeEvent<String, String>> events,
-                             DebeziumEngine.RecordCommitter<ChangeEvent<String, String>> committer,
-                             String inboundEndpointName) throws InterruptedException {
+    public boolean handleEvents(List<ChangeEvent<String, String>> events,
+                                DebeziumEngine.RecordCommitter<ChangeEvent<String, String>> committer,
+                                String inboundEndpointName, AtomicBoolean isShutdownRequested) throws InterruptedException {
 
-        boolean endpointShouldDeactivate = false;
+        boolean success  = true;
 
         for (ChangeEvent<String, String> event : events) {
             try {
+                if (isShutdownRequested.get()) {
+                    break;
+                }
                 if (invoke(event, inboundEndpointName)) {
                     committer.markProcessed(event);
-                    committer.markBatchFinished();
                     continue;
                 }
 
-                boolean eventProcessed = attemptRetries(event, inboundEndpointName);
+                boolean isRetrySucceed = attemptRetries(event, inboundEndpointName,isShutdownRequested);
 
-                if (eventProcessed) {
+                if (isRetrySucceed) {
                     committer.markProcessed(event);
-                    committer.markBatchFinished();
                 } else {
-                    endpointShouldDeactivate = true;
+                    logger.error("Max retry count reached. Inbound endpoint: " + inboundEndpointName
+                            + " will deactivate");
+                    success = false;
                     break;
                 }
-            } catch (Exception e) {
+            } catch (InterruptedException e) {
                 logger.error("Error processing CDC record", e);
                 break;
             }
         }
 
-        if (endpointShouldDeactivate) {
-            logger.error("Max retry count reached. Inbound endpoint: " + inboundEndpointName
-                    + " will deactivate");
-            deactivateInboundEndpoint();
-            invokeDeactivateSequence();
-        }
+        committer.markBatchFinished();
+        return success;
     }
 
     /**
@@ -225,11 +223,15 @@ public class CDCInjectHandler {
      * @param inboundEndpointName Name of the inbound endpoint
      * @return true if processing succeeded during retries, false if max retries reached
      */
-    private boolean attemptRetries(ChangeEvent<String, String> event, String inboundEndpointName) {
+    private boolean attemptRetries(ChangeEvent<String, String> event, String inboundEndpointName,
+                                   AtomicBoolean isShutdownRequested) {
         int retryCount = 0;
         boolean indefiniteRetries = maxRetryCount == DEFAULT_MAX_RETRY_COUNT;
 
         while (indefiniteRetries || retryCount < maxRetryCount) {
+            if (isShutdownRequested.get()) {
+                return false;
+            }
             logger.info("Retrying to inject the message to the sequence: " + injectingSeq);
 
             if (logger.isDebugEnabled()) {
@@ -245,21 +247,12 @@ public class CDCInjectHandler {
         return false;
     }
 
-    private void deactivateInboundEndpoint() {
-        cdcPollingConsumer.deactivate();
-    }
-
-    private void invokeDeactivateSequence() {
-        if (StringUtils.isBlank(onDeactivateSeq)) {
-            logger.warn("Deactivate sequence name not specified");
-        }
+    public void invokeDeactivateSequence() {
         SequenceMediator seq = (SequenceMediator) synapseEnvironment.getSynapseConfiguration()
                 .getSequence(onDeactivateSeq);
         if (seq != null) {
             logger.info("Staring deactivating sequence : " + onDeactivateSeq);
             seq.mediate(createMessageContext());
-        } else {
-            handleError("Deactivate sequence:" + onDeactivateSeq + " not found");
         }
     }
 
