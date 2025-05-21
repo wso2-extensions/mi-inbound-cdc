@@ -32,8 +32,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -59,6 +61,9 @@ import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.FALSE;
 import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.DEBEZIUM_NAME;
 import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.CONNECTOR_NAME;
 import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.DEBEZIUM_INCLUDE_SCHEMA_CHANGES;
+import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.CDC_MAXIMUM_RETRY_COUNT;
+import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.CDC_DEFAULT_RETRY_COUNT;
+import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.CDC_DEACTIVATE_SEQUENCE;
 
 /**
  * This class implement the processing logic related to inbound CDC protocol.
@@ -80,6 +85,10 @@ public class CDCPollingConsumer extends GenericPollingConsumer {
     private enum operations {create, update, delete, truncate};
     private enum opCodes {c, u, d, t};
 
+    private final CountDownLatch shutdownLatch = new CountDownLatch(1);
+    private final AtomicBoolean isShutdownRequested = new AtomicBoolean(false);
+    private final AtomicBoolean allRecordsProcessed = new AtomicBoolean(true);
+
     public CDCPollingConsumer(Properties cdcProperties, String inboundEndpointName, SynapseEnvironment synapseEnvironment,
                               long scanInterval, String inSequence, String onErrorSeq, boolean coordination, boolean sequential) {
         super(cdcProperties, inboundEndpointName, synapseEnvironment, scanInterval, inSequence, onErrorSeq, coordination, sequential);
@@ -91,9 +100,24 @@ public class CDCPollingConsumer extends GenericPollingConsumer {
 
         boolean preserveEvent = Boolean.parseBoolean(
                 cdcProperties.getProperty(CDC_PRESERVE_EVENT));
-
-        registerHandler(new CDCInjectHandler(injectingSeq, onErrorSeq, sequential, synapseEnvironment, preserveEvent));
+        int maxRetryCount = getMaxRetryCount(cdcProperties);
+        String onDeactivateSeq = cdcProperties.getProperty(CDC_DEACTIVATE_SEQUENCE);
+        registerHandler(new CDCInjectHandler(injectingSeq, onErrorSeq, onDeactivateSeq, sequential, synapseEnvironment,
+                preserveEvent, maxRetryCount));
         setProperties();
+    }
+
+    private static int getMaxRetryCount(Properties cdcProperties) {
+        String maxRetryCount = CDC_DEFAULT_RETRY_COUNT;
+        if (cdcProperties.getProperty(CDC_MAXIMUM_RETRY_COUNT) != null) {
+            maxRetryCount = cdcProperties.getProperty(CDC_MAXIMUM_RETRY_COUNT);
+        }
+        try {
+            return Integer.parseInt(maxRetryCount);
+        } catch (NumberFormatException e) {
+            logger.warn("Invalid value for maximum retry count. Using default value of " + CDC_DEFAULT_RETRY_COUNT);
+            return Integer.parseInt(CDC_DEFAULT_RETRY_COUNT);
+        }
     }
 
     /**
@@ -143,14 +167,27 @@ public class CDCPollingConsumer extends GenericPollingConsumer {
 
     private void listenDataChanges () {
         executorService = Executors.newSingleThreadExecutor();
-
         try {
             if (engine == null || executorService.isShutdown()) {
                 engine = DebeziumEngine.create(Json.class)
                         .using(this.cdcProperties)
-                        .notifying(record -> {
-                            injectHandler.invoke(record, this.inboundEndpointName);
-                        }).build();
+                        .notifying((records, committer) -> {
+                            if (!isShutdownRequested.get()) {
+                                allRecordsProcessed.set(false);
+                                boolean success = injectHandler.handleEvents(records, committer, inboundEndpointName,
+                                        isShutdownRequested);
+                                allRecordsProcessed.set(true);
+                                if (isShutdownRequested.get()) {
+                                    shutdownLatch.countDown();
+                                    return;
+                                }
+                                if (!success) {
+                                    deactivate();
+                                    injectHandler.invokeDeactivateSequence();
+                                }
+                            }
+                        })
+                        .build();
 
                 executorService.execute(engine);
             }
@@ -166,7 +203,20 @@ public class CDCPollingConsumer extends GenericPollingConsumer {
         return cdcProperties;
     }
 
+    public void deactivate(){
+        logger.warn("Deactivating the CDC Inbound EP : " + inboundEndpointName);
+        destroy();
+    }
+
     public void destroy() {
+        isShutdownRequested.set(true);
+        if (!allRecordsProcessed.get()) {
+            try {
+                shutdownLatch.await();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
         if (!executorService.isShutdown()) {
             executorService.shutdown();
         }
@@ -252,6 +302,7 @@ public class CDCPollingConsumer extends GenericPollingConsumer {
                 createFile(filePath);
                 this.cdcProperties.setProperty(DEBEZIUM_SCHEMA_HISTORY_INTERNAL_FILE_FILENAME, filePath);
             }
+
         } catch (IOException e) {
             String msg = "Error while setting the CDC Properties";
             logger.error(msg);

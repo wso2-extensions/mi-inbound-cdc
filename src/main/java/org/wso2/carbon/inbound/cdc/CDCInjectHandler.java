@@ -19,6 +19,7 @@
 package org.wso2.carbon.inbound.cdc;
 
 import io.debezium.engine.ChangeEvent;
+import io.debezium.engine.DebeziumEngine;
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.util.UUIDGenerator;
 import org.apache.axis2.AxisFault;
@@ -34,9 +35,9 @@ import org.apache.synapse.inbound.InboundEndpoint;
 import org.apache.synapse.mediators.base.SequenceMediator;
 import org.apache.synapse.transport.customlogsetter.CustomLogSetter;
 
-import java.util.Properties;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.CDC_PRESERVE_EVENT;
 import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.CDC_DATABASE_NAME;
 import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.CDC_OPERATIONS;
 import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.CDC_TABLES;
@@ -46,19 +47,24 @@ public class CDCInjectHandler {
 
     private static final Log logger = LogFactory.getLog(CDCInjectHandler.class);
 
+    private static final int DEFAULT_MAX_RETRY_COUNT = -1; // Indefinite retry
     private String injectingSeq;
     private String onErrorSeq;
+    private String onDeactivateSeq;
     private boolean sequential;
     private SynapseEnvironment synapseEnvironment;
     private boolean preserveEvent;
+    private int maxRetryCount;
 
-    public CDCInjectHandler(String injectingSeq, String onErrorSeq, boolean sequential,
-                            SynapseEnvironment synapseEnvironment, boolean preserveEvent) {
+    public CDCInjectHandler(String injectingSeq, String onErrorSeq, String onDeactivateSeq, boolean sequential,
+                            SynapseEnvironment synapseEnvironment, boolean preserveEvent, int maxRetryCount) {
         this.injectingSeq = injectingSeq;
         this.onErrorSeq = onErrorSeq;
+        this.onDeactivateSeq = onDeactivateSeq;
         this.sequential = sequential;
         this.synapseEnvironment = synapseEnvironment;
         this.preserveEvent = preserveEvent;
+        this.maxRetryCount = maxRetryCount;
     }
 
     /**
@@ -129,6 +135,12 @@ public class CDCInjectHandler {
                 if (!synapseEnvironment.injectInbound(msgCtx, seq, sequential)) {
                     handleError("Failed to inject the message to the sequence : " + injectingSeq);
                 }
+                boolean rollback = Boolean.parseBoolean((String) msgCtx.getProperty(SynapseConstants.SET_ROLLBACK_ONLY));
+                // if sequential is false, injecting sequence will be executed in a separate thread
+                // So, rollback only works when sequential is true.
+                if (sequential && rollback) {
+                    return false;
+                }
             } else {
                 handleError("Sequence:" + injectingSeq + " not found");
             }
@@ -159,4 +171,89 @@ public class CDCInjectHandler {
         msgCtx.setProperty(MessageContext.CLIENT_API_NON_BLOCKING, true);
         return msgCtx;
     }
+
+    /**
+     * Processes change events and manages retry logic for failed event processing.
+     *
+     * @param events List of change events to process
+     * @param committer The record committer used to mark events as processed
+     * @param inboundEndpointName Name of the inbound endpoint
+     * @throws InterruptedException If the thread is interrupted during processing
+     */
+    public boolean handleEvents(List<ChangeEvent<String, String>> events,
+                                DebeziumEngine.RecordCommitter<ChangeEvent<String, String>> committer,
+                                String inboundEndpointName, AtomicBoolean isShutdownRequested) throws InterruptedException {
+
+        boolean success  = true;
+
+        for (ChangeEvent<String, String> event : events) {
+            try {
+                if (isShutdownRequested.get()) {
+                    break;
+                }
+                if (invoke(event, inboundEndpointName)) {
+                    committer.markProcessed(event);
+                    continue;
+                }
+
+                boolean isRetrySucceed = attemptRetries(event, inboundEndpointName,isShutdownRequested);
+
+                if (isRetrySucceed) {
+                    committer.markProcessed(event);
+                } else {
+                    logger.error("Max retry count reached. Inbound endpoint: " + inboundEndpointName
+                            + " will deactivate");
+                    success = false;
+                    break;
+                }
+            } catch (InterruptedException e) {
+                logger.error("Error processing CDC record", e);
+                break;
+            }
+        }
+
+        committer.markBatchFinished();
+        return success;
+    }
+
+    /**
+     * Attempts to retry processing the event according to retry configuration.
+     *
+     * @param event The event to process
+     * @param inboundEndpointName Name of the inbound endpoint
+     * @return true if processing succeeded during retries, false if max retries reached
+     */
+    private boolean attemptRetries(ChangeEvent<String, String> event, String inboundEndpointName,
+                                   AtomicBoolean isShutdownRequested) {
+        int retryCount = 0;
+        boolean indefiniteRetries = maxRetryCount == DEFAULT_MAX_RETRY_COUNT;
+
+        while (indefiniteRetries || retryCount < maxRetryCount) {
+            if (isShutdownRequested.get()) {
+                return false;
+            }
+            logger.info("Retrying to inject the message to the sequence: " + injectingSeq);
+
+            if (logger.isDebugEnabled()) {
+                logger.debug("Retrying to inject the message " + event);
+            }
+
+            retryCount++;
+
+            if (invoke(event, inboundEndpointName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void invokeDeactivateSequence() {
+        SequenceMediator seq = (SequenceMediator) synapseEnvironment.getSynapseConfiguration()
+                .getSequence(onDeactivateSeq);
+        if (seq != null) {
+            logger.info("Staring deactivating sequence : " + onDeactivateSeq);
+            seq.mediate(createMessageContext());
+        }
+    }
+
 }

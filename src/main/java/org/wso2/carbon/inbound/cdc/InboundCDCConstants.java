@@ -46,6 +46,11 @@ class InboundCDCConstants {
 
     public static final String CDC_PRESERVE_EVENT = "preserve.event";
 
+    public static final String CDC_MAXIMUM_RETRY_COUNT = "maximum.retry.count";
+    public static final String CDC_DEFAULT_RETRY_COUNT = "-1"; // Indefinite retry
+
+    public static final String CDC_DEACTIVATE_SEQUENCE = "deactivate.sequence";
+
     /** Output Properties **/
     public static final String CDC_DATABASE_NAME = "cdc.database";
     public static final String CDC_TABLES ="cdc.tables";
