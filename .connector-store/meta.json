@@ -16,13 +16,258 @@
     ],
     "releases": [
         {
-            "tagName": "v2.0.1",
+            "tagName": "v2.0.2",
             "products": [
                 "MI 4.4.0"
             ],
-            "operations": [],
-            "connections": [],
-            "isHidden": false
+            "operations": [
+                {
+                    "name": "init",
+                    "description": "Initialize Kafka Inbound Endpoint",
+                    "params": [
+                        {
+                            "name": "name",
+                            "type": "string",
+                            "required": true,
+                            "defaultValue": "",
+                            "description": "Unique identifier for the CDC event integration."
+                        },
+                        {
+                            "name": "class",
+                            "type": "string",
+                            "required": true,
+                            "defaultValue": "org.wso2.carbon.inbound.cdc.CDCPollingConsumer",
+                            "description": ""
+                        },
+                        {
+                            "name": "generateSequences",
+                            "type": "checkbox",
+                            "required": false,
+                            "defaultValue": "True",
+                            "description": ""
+                        },
+                        {
+                            "name": "sequence",
+                            "type": "keyOrExpression",
+                            "required": true,
+                            "defaultValue": "",
+                            "description": "Sequence to inject the CDC message"
+                        },
+                        {
+                            "name": "onError",
+                            "type": "keyOrExpression",
+                            "required": true,
+                            "defaultValue": "",
+                            "description": "Error sequence to invoke on fault"
+                        },
+                        {
+                            "name": "suspend",
+                            "type": "checkbox",
+                            "required": false,
+                            "defaultValue": "False",
+                            "description": "Suspend Inbound"
+                        },
+                        {
+                            "name": "interval",
+                            "type": "string",
+                            "required": true,
+                            "defaultValue": "",
+                            "description": "The polling interval for the CDC inbound endpoint."
+                        },
+                        {
+                            "name": "sequential",
+                            "type": "checkbox",
+                            "required": false,
+                            "defaultValue": "True",
+                            "description": "The behavior when executing the given sequence."
+                        },
+                        {
+                            "name": "coordination",
+                            "type": "checkbox",
+                            "required": false,
+                            "defaultValue": "True",
+                            "description": "In a clustered setup, this will run the inbound only in a single worker node."
+                        },
+                        {
+                            "name": "preserve.event",
+                            "type": "checkbox",
+                            "required": false,
+                            "defaultValue": "False",
+                            "description": "Enable this to preserve the original event payload."
+                        },
+                        {
+                            "name": "snapshot.mode",
+                            "type": "combo",
+                            "required": true,
+                            "defaultValue": "initial",
+                            "description": "Specifies the criteria for running a snapshot when the connector starts."
+                        },
+                        {
+                            "name": "connector.class",
+                            "type": "string",
+                            "required": true,
+                            "defaultValue": "io.debezium.connector.mysql.MySqlConnector",
+                            "description": "The name of the Java class for the connector."
+                        },
+                        {
+                            "name": "database.hostname",
+                            "type": "string",
+                            "required": true,
+                            "defaultValue": "",
+                            "description": "IP address or hostname of the database server."
+                        },
+                        {
+                            "name": "database.port",
+                            "type": "string",
+                            "required": true,
+                            "defaultValue": "",
+                            "description": "Port number (Integer) of the database server."
+                        },
+                        {
+                            "name": "database.user",
+                            "type": "string",
+                            "required": true,
+                            "defaultValue": "",
+                            "description": "Name of the database user to use when connecting to the database server."
+                        },
+                        {
+                            "name": "database.password",
+                            "type": "string",
+                            "required": true,
+                            "defaultValue": "",
+                            "description": "The password to connect to the database."
+                        },
+                        {
+                            "name": "database.dbname",
+                            "type": "string",
+                            "required": true,
+                            "defaultValue": "",
+                            "description": "The name of the database that needs to be listened to."
+                        },
+                        {
+                            "name": "database.instance",
+                            "type": "string",
+                            "required": false,
+                            "defaultValue": "",
+                            "description": "Specifies the instance name of the SQL Server named instance."
+                        },
+                        {
+                            "name": "database.names",
+                            "type": "string",
+                            "required": false,
+                            "defaultValue": "",
+                            "description": "The comma-separated list of the SQL Server database names from which to stream the changes."
+                        },
+                        {
+                            "name": "database.server.id",
+                            "type": "string",
+                            "required": false,
+                            "defaultValue": "",
+                            "description": "A unique numeric ID for this database client across all active database processes in the cluster."
+                        },
+                        {
+                            "name": "table.include.list",
+                            "type": "string",
+                            "required": false,
+                            "defaultValue": "",
+                            "description": "Comma-separated list of tables for which changes need to be captured."
+                        },
+                        {
+                            "name": "allowed.operations",
+                            "type": "string",
+                            "required": false,
+                            "defaultValue": "",
+                            "description": "Comma separated values. Ex: create, update, delete, truncate."
+                        },
+                        {
+                            "name": "connector.name",
+                            "type": "string",
+                            "required": false,
+                            "defaultValue": "",
+                            "description": "Unique name for the Debezium connector instance. The inbound endpoint name is used as default."
+                        },
+                        {
+                            "name": "topic.prefix",
+                            "type": "string",
+                            "required": false,
+                            "defaultValue": "",
+                            "description": "The prefix, used for all Kafka topic names, must be unique across all connectors."
+                        },
+                        {
+                            "name": "schema.history.internal",
+                            "type": "string",
+                            "required": false,
+                            "defaultValue": "",
+                            "description": "The Java class that persists the database schema history."
+                        },
+                        {
+                            "name": "schema.history.internal.file.filename",
+                            "type": "string",
+                            "required": false,
+                            "defaultValue": "",
+                            "description": "Specify the file path where the database schema history is stored."
+                        },
+                        {
+                            "name": "schema.history.internal.kafka.topic",
+                            "type": "string",
+                            "required": false,
+                            "defaultValue": "",
+                            "description": "The Kafka topic storing the database schema history."
+                        },
+                        {
+                            "name": "schema.history.internal.kafka.bootstrap.servers",
+                            "type": "string",
+                            "required": false,
+                            "defaultValue": "",
+                            "description": "The initial list of Kafka cluster servers to connect."
+                        },
+                        {
+                            "name": "offset.storage",
+                            "type": "string",
+                            "required": false,
+                            "defaultValue": "",
+                            "description": "The Java class that persists connector offsets."
+                        },
+                        {
+                            "name": "offset.storage.file.filename",
+                            "type": "string",
+                            "required": false,
+                            "defaultValue": "",
+                            "description": "Path to file where offsets are to be stored."
+                        },
+                        {
+                            "name": "offset.storage.topic",
+                            "type": "string",
+                            "required": false,
+                            "defaultValue": "",
+                            "description": "The Kafka topic where offsets are stored."
+                        },
+                        {
+                            "name": "offset.storage.partitions",
+                            "type": "string",
+                            "required": false,
+                            "defaultValue": "",
+                            "description": "The number of partitions for the offset storage topic."
+                        },
+                        {
+                            "name": "offset.storage.replication.factor",
+                            "type": "string",
+                            "required": false,
+                            "defaultValue": "",
+                            "description": "The replication factor for the offset storage topic."
+                        },
+                        {
+                            "name": "database.out.server.name",
+                            "type": "string",
+                            "required": false,
+                            "defaultValue": "",
+                            "description": "The name of the XStream outbound server configured in the database."
+                        }
+                    ],
+                    "isHidden": false
+                }
+            ],
+            "connections": []
         },
         {
             "tagName": "v1.2.2",
