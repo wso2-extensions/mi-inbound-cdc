@@ -38,6 +38,7 @@ class InboundCDCConstants {
     public static final String DEBEZIUM_KEY_CONVERTER = "key.converter";
     public static final String DEBEZIUM_VALUE_CONVERTER_SCHEMAS_ENABLE = "value.converter.schemas.enable";
     public static final String DEBEZIUM_KEY_CONVERTER_SCHEMAS_ENABLE = "key.converter.schemas.enable";
+    public static final String MAX_BATCH_SIZE = "max.batch.size";
 
     public static final String DEBEZIUM_SCHEMA_HISTORY_INTERNAL = "schema.history.internal";
     public static final String DEBEZIUM_SCHEMA_HISTORY_INTERNAL_FILE_FILENAME = "schema.history.internal.file.filename";
