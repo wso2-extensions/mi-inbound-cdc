@@ -58,6 +58,5 @@ public class CDCConsumerHandler implements DebeziumEngine.ChangeConsumer<ChangeE
         recordCommitter.markBatchFinished();
         logger.debug("End : Listening to DB events : ");
         Thread.sleep(scanInterval);
-
     }
 }
