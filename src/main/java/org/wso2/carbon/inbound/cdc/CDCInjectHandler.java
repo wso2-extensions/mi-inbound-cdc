@@ -148,10 +148,10 @@ public class CDCInjectHandler {
         return true;
     }
 
-   private void handleError(String msg) {
-       logger.error(msg);
-       throw new RuntimeException(msg);
-   }
+    private void handleError(String msg) {
+        logger.error(msg);
+        throw new RuntimeException(msg);
+    }
 
     private void handleError(Exception e) {
         logger.error(e);
@@ -175,8 +175,8 @@ public class CDCInjectHandler {
     /**
      * Processes change events and manages retry logic for failed event processing.
      *
-     * @param events List of change events to process
-     * @param committer The record committer used to mark events as processed
+     * @param events              List of change events to process
+     * @param committer           The record committer used to mark events as processed
      * @param inboundEndpointName Name of the inbound endpoint
      * @throws InterruptedException If the thread is interrupted during processing
      */
@@ -184,7 +184,7 @@ public class CDCInjectHandler {
                                 DebeziumEngine.RecordCommitter<ChangeEvent<String, String>> committer,
                                 String inboundEndpointName, AtomicBoolean isShutdownRequested) throws InterruptedException {
 
-        boolean success  = true;
+        boolean success = true;
 
         for (ChangeEvent<String, String> event : events) {
             try {
@@ -196,7 +196,7 @@ public class CDCInjectHandler {
                     continue;
                 }
 
-                boolean isRetrySucceed = attemptRetries(event, inboundEndpointName,isShutdownRequested);
+                boolean isRetrySucceed = attemptRetries(event, inboundEndpointName, isShutdownRequested);
 
                 if (isRetrySucceed) {
                     committer.markProcessed(event);
@@ -219,7 +219,7 @@ public class CDCInjectHandler {
     /**
      * Attempts to retry processing the event according to retry configuration.
      *
-     * @param event The event to process
+     * @param event               The event to process
      * @param inboundEndpointName Name of the inbound endpoint
      * @return true if processing succeeded during retries, false if max retries reached
      */

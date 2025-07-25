@@ -33,6 +33,7 @@ class InboundCDCConstants {
     public static final String DEBEZIUM_DATABASE_PASSWORD = "database.password";
     public static final String DEBEZIUM_DATABASE_ALLOW_PUBLIC_KEY_RETRIEVAL = "database.allowPublicKeyRetrieval";
     public static final String DEBEZIUM_TOPIC_PREFIX = "topic.prefix";
+    public static final String MAX_BATCH_SIZE = "max.batch.size";
 
     public static final String DEBEZIUM_VALUE_CONVERTER = "value.converter";
     public static final String DEBEZIUM_KEY_CONVERTER = "key.converter";

@@ -56,6 +56,7 @@ import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.DEBEZIUM_VALUE_CON
 import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.DEBEZIUM_SKIPPED_OPERATIONS;
 import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.FILE_SCHEMA_HISTORY_STORAGE_CLASS;
 import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.FILE_OFFSET_STORAGE_CLASS;
+import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.MAX_BATCH_SIZE;
 import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.TRUE;
 import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.FALSE;
 import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.DEBEZIUM_NAME;
@@ -169,26 +170,40 @@ public class CDCPollingConsumer extends GenericPollingConsumer {
         executorService = Executors.newSingleThreadExecutor();
         try {
             if (engine == null || executorService.isShutdown()) {
-                engine = DebeziumEngine.create(Json.class)
-                        .using(this.cdcProperties)
-                        .notifying((records, committer) -> {
-                            if (!isShutdownRequested.get()) {
-                                allRecordsProcessed.set(false);
-                                boolean success = injectHandler.handleEvents(records, committer, inboundEndpointName,
-                                        isShutdownRequested);
-                                allRecordsProcessed.set(true);
-                                if (isShutdownRequested.get()) {
-                                    shutdownLatch.countDown();
-                                    return;
-                                }
-                                if (!success) {
-                                    deactivate();
-                                    injectHandler.invokeDeactivateSequence();
-                                }
-                            }
-                        })
-                        .build();
+                CDCConsumerParent parent = new CDCConsumerParent() {
+                    @Override
+                    public void setAllRecordsProcessed(boolean value) {
+                        CDCPollingConsumer.this.allRecordsProcessed.set(value);
+                    }
 
+                    @Override
+                    public CountDownLatch getShutdownLatch() {
+                        return CDCPollingConsumer.this.shutdownLatch;
+                    }
+
+                    @Override
+                    public void deactivate() {
+                        CDCPollingConsumer.this.deactivate();
+                    }
+                };
+                DebeziumEngine.Builder<ChangeEvent<String, String>> engineBuilder = DebeziumEngine
+                        .create(Json.class)
+                        .using(this.cdcProperties);
+                if(this.cdcProperties.getProperty(MAX_BATCH_SIZE) != null) {
+
+                    engineBuilder = engineBuilder.notifying(
+                            new CDCConsumerHandler(injectHandler, this.inboundEndpointName,
+                                    this.scanInterval,
+                                    this.isShutdownRequested, parent)
+                    );
+                } else {
+                    engineBuilder = engineBuilder
+                        .notifying((records, committer) -> {
+                            CDCUtils.handleChangeEvents(records, committer, inboundEndpointName, injectHandler,
+                                    isShutdownRequested, parent);
+                        });
+                }
+                engine = engineBuilder.build();
                 executorService.execute(engine);
             }
         } finally {
@@ -347,4 +362,10 @@ public class CDCPollingConsumer extends GenericPollingConsumer {
         allOperations.removeAll(allowedOperationsSet);
         return String.join(",", allOperations);
     }
+}
+// Interface that parent class CDCPollingConsumer should implement for passing value to handler
+interface CDCConsumerParent {
+    void setAllRecordsProcessed(boolean value);
+    CountDownLatch getShutdownLatch();
+    void deactivate();
 }
