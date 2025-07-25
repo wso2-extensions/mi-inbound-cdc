@@ -170,26 +170,27 @@ public class CDCPollingConsumer extends GenericPollingConsumer {
         executorService = Executors.newSingleThreadExecutor();
         try {
             if (engine == null || executorService.isShutdown()) {
+                CDCConsumerParent parent = new CDCConsumerParent() {
+                    @Override
+                    public void setAllRecordsProcessed(boolean value) {
+                        CDCPollingConsumer.this.allRecordsProcessed.set(value);
+                    }
+
+                    @Override
+                    public CountDownLatch getShutdownLatch() {
+                        return CDCPollingConsumer.this.shutdownLatch;
+                    }
+
+                    @Override
+                    public void deactivate() {
+                        CDCPollingConsumer.this.deactivate();
+                    }
+                };
                 DebeziumEngine.Builder<ChangeEvent<String, String>> engineBuilder = DebeziumEngine
                         .create(Json.class)
                         .using(this.cdcProperties);
                 if(this.cdcProperties.getProperty(MAX_BATCH_SIZE) != null) {
-                    CDCConsumerParent parent = new CDCConsumerParent() {
-                        @Override
-                        public void setAllRecordsProcessed(boolean value) {
-                            CDCPollingConsumer.this.allRecordsProcessed.set(value);
-                        }
 
-                        @Override
-                        public CountDownLatch getShutdownLatch() {
-                            return CDCPollingConsumer.this.shutdownLatch;
-                        }
-
-                        @Override
-                        public void deactivate() {
-                            CDCPollingConsumer.this.deactivate();
-                        }
-                    };
                     engineBuilder = engineBuilder.notifying(
                             new CDCConsumerHandler(injectHandler, this.inboundEndpointName,
                                     this.scanInterval,
@@ -198,20 +199,8 @@ public class CDCPollingConsumer extends GenericPollingConsumer {
                 } else {
                     engineBuilder = engineBuilder
                         .notifying((records, committer) -> {
-                            if (!isShutdownRequested.get()) {
-                                allRecordsProcessed.set(false);
-                                boolean success = injectHandler.handleEvents(records, committer, inboundEndpointName,
-                                        isShutdownRequested);
-                                allRecordsProcessed.set(true);
-                                if (isShutdownRequested.get()) {
-                                    shutdownLatch.countDown();
-                                    return;
-                                }
-                                if (!success) {
-                                    deactivate();
-                                    injectHandler.invokeDeactivateSequence();
-                                }
-                            }
+                            CDCUtils.handleChangeEvents(records, committer, inboundEndpointName, injectHandler,
+                                    isShutdownRequested, parent);
                         });
                 }
                 engine = engineBuilder.build();
