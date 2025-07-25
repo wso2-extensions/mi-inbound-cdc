@@ -54,6 +54,7 @@ import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.DEBEZIUM_VALUE_CON
 import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.DEBEZIUM_SKIPPED_OPERATIONS;
 import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.FILE_SCHEMA_HISTORY_STORAGE_CLASS;
 import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.FILE_OFFSET_STORAGE_CLASS;
+import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.MAX_BATCH_SIZE;
 import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.TRUE;
 import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.FALSE;
 import static org.wso2.carbon.inbound.cdc.InboundCDCConstants.DEBEZIUM_NAME;
@@ -146,12 +147,18 @@ public class CDCPollingConsumer extends GenericPollingConsumer {
 
         try {
             if (engine == null || executorService.isShutdown()) {
-                engine = DebeziumEngine.create(Json.class)
-                        .using(this.cdcProperties)
-                        .notifying(record -> {
-                            injectHandler.invoke(record, this.inboundEndpointName);
-                        }).build();
-
+                DebeziumEngine.Builder<ChangeEvent<String, String>> engineBuilder = DebeziumEngine
+                        .create(Json.class)
+                        .using(this.cdcProperties);
+                if (this.cdcProperties.getProperty(MAX_BATCH_SIZE) != null) {
+                    engineBuilder.notifying(new CDCConsumerHandler(injectHandler, this.inboundEndpointName,
+                            this.scanInterval));
+                } else {
+                    engineBuilder = engineBuilder.notifying(record -> {
+                        injectHandler.invoke(record, this.inboundEndpointName);
+                    });
+                }
+                engine = engineBuilder.build();
                 executorService.execute(engine);
             }
         } finally {
@@ -159,7 +166,6 @@ public class CDCPollingConsumer extends GenericPollingConsumer {
                 executorService.shutdown();
             }
         }
-
     }
 
     protected Properties getInboundProperties() {
