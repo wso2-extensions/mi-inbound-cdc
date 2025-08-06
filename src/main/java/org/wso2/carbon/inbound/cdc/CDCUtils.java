@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Util class for storing common utils.
  */
 public class CDCUtils {
+
     public static void handleChangeEvents(List<ChangeEvent<String, String>> records,
                                    DebeziumEngine.RecordCommitter<ChangeEvent<String, String>> committer,
                                    String inboundEndpointName, CDCInjectHandler injectHandler,

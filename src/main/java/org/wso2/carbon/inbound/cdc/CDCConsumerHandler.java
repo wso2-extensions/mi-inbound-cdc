@@ -46,7 +46,10 @@ public class CDCConsumerHandler implements DebeziumEngine.ChangeConsumer<ChangeE
     }
 
     @Override
-    public void handleBatch(List<ChangeEvent<String, String>> list, DebeziumEngine.RecordCommitter<ChangeEvent<String, String>> recordCommitter) throws InterruptedException {
+    public void handleBatch(List<ChangeEvent<String, String>> list,
+                            DebeziumEngine.RecordCommitter<ChangeEvent<String, String>> recordCommitter)
+            throws InterruptedException {
+
         logger.debug("Start : listening to DB events : ");
         CDCUtils.handleChangeEvents(list, recordCommitter, inboundEndpointName, injectHandler, isShutdownRequested, parent);
         logger.debug("End : Listening to DB events : ");
