@@ -89,6 +89,7 @@ public class CDCPollingConsumer extends GenericPollingConsumer {
     private final CountDownLatch shutdownLatch = new CountDownLatch(1);
     private final AtomicBoolean isShutdownRequested = new AtomicBoolean(false);
     private final AtomicBoolean allRecordsProcessed = new AtomicBoolean(true);
+    private boolean isPaused = false;
 
     public CDCPollingConsumer(Properties cdcProperties, String inboundEndpointName, SynapseEnvironment synapseEnvironment,
                               long scanInterval, String inSequence, String onErrorSeq, boolean coordination, boolean sequential) {
@@ -169,7 +170,7 @@ public class CDCPollingConsumer extends GenericPollingConsumer {
     private void listenDataChanges () {
         executorService = Executors.newSingleThreadExecutor();
         try {
-            if (engine == null || executorService.isShutdown()) {
+            if (isPaused || engine == null || executorService.isShutdown()) {
                 CDCConsumerParent parent = new CDCConsumerParent() {
                     @Override
                     public void setAllRecordsProcessed(boolean value) {
@@ -205,6 +206,7 @@ public class CDCPollingConsumer extends GenericPollingConsumer {
                 }
                 engine = engineBuilder.build();
                 executorService.execute(engine);
+                isPaused = false;
             }
         } finally {
             if (executorService != null) {
@@ -242,6 +244,11 @@ public class CDCPollingConsumer extends GenericPollingConsumer {
         } catch (IOException e) {
             throw new RuntimeException("Error while closing the Debezium Engine", e);
         }
+    }
+
+    public void resume() {
+        isPaused = true;
+        isShutdownRequested.set(false);
     }
 
     private void setProperties () {
