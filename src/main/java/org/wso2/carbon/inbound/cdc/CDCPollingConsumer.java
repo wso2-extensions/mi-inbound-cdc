@@ -247,8 +247,12 @@ public class CDCPollingConsumer extends GenericPollingConsumer {
     }
 
     public void resume() {
-        isPaused = true;
         isShutdownRequested.set(false);
+    }
+
+    public void pause() {
+        isPaused = true;
+        destroy();
     }
 
     private void setProperties () {
