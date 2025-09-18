@@ -161,16 +161,23 @@ public class CDCPollingConsumer extends GenericPollingConsumer {
      * according to the registered handler
      */
     public ChangeEvent<String, String> poll() {
-        logger.debug("Start : listening to DB events : ");
-        listenDataChanges();
-        logger.debug("End : Listening to DB events : ");
+        if (!isPaused) {
+            logger.debug("Start : listening to DB events : ");
+            listenDataChanges();
+            logger.debug("End : Listening to DB events : ");
+        }
+
         return null;
     }
 
     private void listenDataChanges () {
         executorService = Executors.newSingleThreadExecutor();
         try {
-            if (isPaused || engine == null || executorService.isShutdown()) {
+            if ( isShutdownRequested.get() || engine == null || executorService.isShutdown()) {
+                // Whenever destroy() is called, isShutdownRequested will be set to true.
+                // Hence, when the inbound endpoint is restarted, a new engine should be created.
+                isShutdownRequested.set(false);
+
                 CDCConsumerParent parent = new CDCConsumerParent() {
                     @Override
                     public void setAllRecordsProcessed(boolean value) {
@@ -206,7 +213,6 @@ public class CDCPollingConsumer extends GenericPollingConsumer {
                 }
                 engine = engineBuilder.build();
                 executorService.execute(engine);
-                isPaused = false;
             }
         } finally {
             if (executorService != null) {
@@ -234,7 +240,7 @@ public class CDCPollingConsumer extends GenericPollingConsumer {
                 throw new RuntimeException(e);
             }
         }
-        if (!executorService.isShutdown()) {
+        if (executorService != null && !executorService.isShutdown()) {
             executorService.shutdown();
         }
         try {
@@ -247,7 +253,7 @@ public class CDCPollingConsumer extends GenericPollingConsumer {
     }
 
     public void resume() {
-        isShutdownRequested.set(false);
+        isPaused = false;
     }
 
     public void pause() {
