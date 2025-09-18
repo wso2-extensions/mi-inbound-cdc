@@ -89,6 +89,7 @@ public class CDCPollingConsumer extends GenericPollingConsumer {
     private final CountDownLatch shutdownLatch = new CountDownLatch(1);
     private final AtomicBoolean isShutdownRequested = new AtomicBoolean(false);
     private final AtomicBoolean allRecordsProcessed = new AtomicBoolean(true);
+    private boolean isPaused = false;
 
     public CDCPollingConsumer(Properties cdcProperties, String inboundEndpointName, SynapseEnvironment synapseEnvironment,
                               long scanInterval, String inSequence, String onErrorSeq, boolean coordination, boolean sequential) {
@@ -160,16 +161,23 @@ public class CDCPollingConsumer extends GenericPollingConsumer {
      * according to the registered handler
      */
     public ChangeEvent<String, String> poll() {
-        logger.debug("Start : listening to DB events : ");
-        listenDataChanges();
-        logger.debug("End : Listening to DB events : ");
+        if (!isPaused) {
+            logger.debug("Start : listening to DB events : ");
+            listenDataChanges();
+            logger.debug("End : Listening to DB events : ");
+        }
+
         return null;
     }
 
     private void listenDataChanges () {
         executorService = Executors.newSingleThreadExecutor();
         try {
-            if (engine == null || executorService.isShutdown()) {
+            if ( isShutdownRequested.get() || engine == null || executorService.isShutdown()) {
+                // Whenever destroy() is called, isShutdownRequested will be set to true.
+                // Hence, when the inbound endpoint is restarted, a new engine should be created.
+                isShutdownRequested.set(false);
+
                 CDCConsumerParent parent = new CDCConsumerParent() {
                     @Override
                     public void setAllRecordsProcessed(boolean value) {
@@ -232,7 +240,7 @@ public class CDCPollingConsumer extends GenericPollingConsumer {
                 throw new RuntimeException(e);
             }
         }
-        if (!executorService.isShutdown()) {
+        if (executorService != null && !executorService.isShutdown()) {
             executorService.shutdown();
         }
         try {
@@ -242,6 +250,15 @@ public class CDCPollingConsumer extends GenericPollingConsumer {
         } catch (IOException e) {
             throw new RuntimeException("Error while closing the Debezium Engine", e);
         }
+    }
+
+    public void resume() {
+        isPaused = false;
+    }
+
+    public void pause() {
+        isPaused = true;
+        destroy();
     }
 
     private void setProperties () {
