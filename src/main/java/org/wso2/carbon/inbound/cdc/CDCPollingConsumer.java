@@ -233,6 +233,7 @@ public class CDCPollingConsumer extends GenericPollingConsumer {
 
     public void destroy() {
         isShutdownRequested.set(true);
+        isPaused = true; // To pause event polling in deactivation
         if (!allRecordsProcessed.get()) {
             try {
                 shutdownLatch.await();
@@ -258,7 +259,6 @@ public class CDCPollingConsumer extends GenericPollingConsumer {
 
     public void pause() {
         isPaused = true;
-        destroy();
     }
 
     private void setProperties () {
