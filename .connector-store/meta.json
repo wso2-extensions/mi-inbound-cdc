@@ -16,7 +16,7 @@
     ],
     "releases": [
         {
-            "tagName": "v2.0.3",
+            "tagName": "v2.0.4",
             "products": [
                 "MI 4.4.0",
                 "MI 4.5.0"
@@ -62,13 +62,6 @@
                             "description": "Error sequence to invoke on fault"
                         },
                         {
-                            "name": "suspend",
-                            "type": "checkbox",
-                            "required": false,
-                            "defaultValue": "False",
-                            "description": "Suspend Inbound"
-                        },
-                        {
                             "name": "interval",
                             "type": "string",
                             "required": true,
@@ -88,6 +81,13 @@
                             "required": false,
                             "defaultValue": "True",
                             "description": "In a clustered setup, this will run the inbound only in a single worker node."
+                        },
+                        {
+                            "name": "suspend",
+                            "type": "checkbox",
+                            "required": false,
+                            "defaultValue": "False",
+                            "description": "Enable this option to suspend the inbound endpoint immediately after deployment."
                         },
                         {
                             "name": "preserve.event",
